@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Escape Room – Present Perfect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+</head>
+<body>
+<canvas id="bg-canvas" style="position:fixed;top:0;left:0;pointer-events:none;z-index:0;"></canvas>
+<div id="root" style="position:relative;z-index:1;"></div>
+<script>
+// ─── PARTICLE SYSTEM ─────────────────────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  const P = [];
+  for (let i = 0; i < 55; i++) {
+    P.push({ x: Math.random()*1400, y: Math.random()*900, r: Math.random()*2.5+0.5,
+      speed: Math.random()*0.35+0.08, drift: (Math.random()-0.5)*0.25,
+      op: Math.random()*0.5+0.1, col: Math.random()>0.5?'200,140,40':'255,130,20',
+      life: Math.random() });
+  }
+  function tick() {
+    ctx.clearRect(0,0,W,H);
+    P.forEach(p => {
+      p.life += 0.004; if(p.life>1){p.life=0;p.x=Math.random()*W;p.y=H+10;}
+      p.y -= p.speed; p.x += p.drift;
+      const a = Math.sin(p.life*Math.PI);
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r*a,0,Math.PI*2);
+      ctx.fillStyle = 'rgba('+p.col+','+p.op*a*0.5+')'; ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+// ─── CONFETTI ────────────────────────────────────────────────────────────────
+window.triggerConfetti = function() {
+  const cv = document.createElement('canvas');
+  cv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;';
+  cv.width = window.innerWidth; cv.height = window.innerHeight;
+  document.body.appendChild(cv);
+  const c = cv.getContext('2d');
+  const cols = ['#f0c060','#ff8c00','#ffd700','#5a9c4a','#90d080','#f0e6d3','#ff6b00','#c8a45e'];
+  const pieces = Array.from({length:90},()=>({
+    x:Math.random()*cv.width, y:-20,
+    w:Math.random()*10+4, h:Math.random()*5+2,
+    rot:Math.random()*360, rs:(Math.random()-0.5)*9,
+    sp:Math.random()*3+1.5, dr:(Math.random()-0.5)*1.5,
+    col:cols[Math.floor(Math.random()*cols.length)], op:1
+  }));
+  let f=0;
+  function draw(){
+    c.clearRect(0,0,cv.width,cv.height);
+    pieces.forEach(p=>{
+      p.y+=p.sp; p.x+=p.dr; p.rot+=p.rs;
+      if(p.y>cv.height*0.75) p.op*=0.97;
+      c.save(); c.translate(p.x,p.y); c.rotate(p.rot*Math.PI/180);
+      c.fillStyle=p.col; c.globalAlpha=p.op;
+      c.fillRect(-p.w/2,-p.h/2,p.w,p.h); c.restore();
+    });
+    if(++f<200) requestAnimationFrame(draw); else cv.remove();
+  }
+  draw();
+};
+
+// ─── AUTO-CONFETTI ────────────────────────────────────────────────────────────
+const _obs = new MutationObserver(muts=>{
+  muts.forEach(m=>m.addedNodes.forEach(n=>{
+    if(n.nodeType===1&&n.classList&&n.classList.contains('feedback-box')&&n.classList.contains('correct'))
+      setTimeout(window.triggerConfetti,150);
+  }));
+});
+setTimeout(()=>_obs.observe(document.getElementById('root'),{childList:true,subtree:true}),200);
+
+const { useState } = React;
+const STYLE = `
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Lato', sans-serif;
+  background: #080503;
+  color: #e8d5b0;
+  min-height: 100vh;
+}
+
+.game-wrap {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 15% 10%, rgba(220,130,30,0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 90%, rgba(100,55,10,0.12) 0%, transparent 50%),
+    #0a0604;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1rem 4rem;
+}
+
+.progress-bar {
+  width: 100%;
+  max-width: 860px;
+  padding: 1.2rem 1.5rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(120,75,20,0.4);
+  background: rgba(15,9,3,0.85);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  color: rgba(150,100,30,0.6);
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.dot.active {
+  border-color: #f0a030;
+  background: radial-gradient(circle, rgba(240,160,48,0.25) 0%, rgba(180,80,10,0.1) 100%);
+  color: #f5c860;
+  box-shadow: 0 0 12px rgba(240,150,30,0.7), 0 0 28px rgba(240,100,20,0.35), inset 0 0 8px rgba(240,160,48,0.2);
+  animation: emberPulse 2s ease-in-out infinite;
+  transform: scale(1.18);
+}
+
+@keyframes emberPulse {
+  0%,100% { box-shadow: 0 0 12px rgba(240,150,30,0.7), 0 0 28px rgba(240,100,20,0.35); }
+  50% { box-shadow: 0 0 22px rgba(240,160,48,1), 0 0 50px rgba(240,100,20,0.55); }
+}
+
+.dot.done {
+  border-color: #52914a;
+  background: radial-gradient(circle, rgba(82,145,74,0.28) 0%, rgba(50,90,45,0.1) 100%);
+  color: #88cc78;
+  box-shadow: 0 0 8px rgba(82,145,74,0.45);
+}
+
+.dot-line {
+  flex: 1;
+  height: 2px;
+  background: rgba(60,35,8,0.5);
+  max-width: 40px;
+  border-radius: 1px;
+}
+
+.dot-line.done {
+  background: linear-gradient(90deg, #52914a, #3a7030);
+  box-shadow: 0 0 5px rgba(82,145,74,0.5);
+}
+
+.progress-label {
+  text-align: center;
+  font-size: 9px;
+  color: rgba(200,145,50,0.45);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-family: 'Cinzel', serif;
+}
+
+.card {
+  background: linear-gradient(160deg, rgba(42,26,10,0.96) 0%, rgba(22,13,5,0.98) 100%);
+  border: 1px solid rgba(170,110,35,0.18);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 860px;
+  padding: 2rem 2.4rem;
+  margin-top: 0.8rem;
+  position: relative;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.85), 0 0 0 1px rgba(200,164,94,0.05), inset 0 1px 0 rgba(200,164,94,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,164,94,0.35), transparent);
+  border-radius: 10px 10px 0 0;
+}
+
+.corner-deco {
+  position: absolute;
+  width: 22px; height: 22px;
+  border-color: rgba(200,150,50,0.28);
+  border-style: solid;
+}
+.corner-deco.tl { top: 6px; left: 6px; border-width: 2px 0 0 2px; border-radius: 3px 0 0 0; }
+.corner-deco.tr { top: 6px; right: 6px; border-width: 2px 2px 0 0; border-radius: 0 3px 0 0; }
+.corner-deco.bl { bottom: 6px; left: 6px; border-width: 0 0 2px 2px; border-radius: 0 0 0 3px; }
+.corner-deco.br { bottom: 6px; right: 6px; border-width: 0 2px 2px 0; border-radius: 0 0 3px 0; }
+
+.room-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #f0c060;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+  text-shadow: 0 0 22px rgba(240,160,48,0.45), 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.room-subtitle {
+  font-size: 0.7rem;
+  color: rgba(200,135,40,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  margin-bottom: 1.4rem;
+  font-family: 'Cinzel', serif;
+}
+
+.dino-box {
+  display: flex;
+  gap: 1rem;
+  background: rgba(200,100,20,0.06);
+  border: 1px solid rgba(200,120,40,0.22);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+  animation: dinoGlow 3s ease-in-out infinite;
+}
+
+@keyframes dinoGlow {
+  0%,100% { border-color: rgba(200,120,40,0.22); box-shadow: none; }
+  50% { border-color: rgba(240,160,48,0.38); box-shadow: 0 0 18px rgba(200,120,40,0.08); }
+}
+
+.dino-box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(240,160,48,0.38), transparent);
+}
+
+.dino-avatar {
+  font-size: 2.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 10px rgba(240,160,48,0.55));
+  animation: dinoFloat 3s ease-in-out infinite;
+}
+
+@keyframes dinoFloat {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.dino-name {
+  font-size: 0.66rem;
+  color: #f0a030;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  margin-bottom: 0.28rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+}
+
+.dino-text {
+  font-size: 0.9rem;
+  color: #c8b080;
+  font-style: italic;
+  line-height: 1.65;
+  font-weight: 300;
+}
+
+.story-text {
+  font-size: 0.93rem;
+  color: #c0ae84;
+  line-height: 1.78;
+  margin-bottom: 1.4rem;
+  border-left: 3px solid rgba(200,120,40,0.38);
+  padding-left: 1.1rem;
+  font-weight: 300;
+}
+
+.story-text em {
+  color: #f0c060;
+  font-style: italic;
+  font-weight: 400;
+  text-shadow: 0 0 10px rgba(240,192,96,0.3);
+}
+
+.task-heading {
+  font-family: 'Cinzel', serif;
+  font-size: 0.98rem;
+  color: #e8d0a0;
+  margin-bottom: 1rem;
+  margin-top: 1.2rem;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.mc-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.mc-btn {
+  background: rgba(28,16,6,0.85);
+  border: 1px solid rgba(110,72,25,0.38);
+  border-radius: 7px;
+  padding: 0.82rem 1.1rem;
+  color: #c0a86a;
+  font-family: 'Lato', sans-serif;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  line-height: 1.5;
+  position: relative;
+  overflow: hidden;
+}
+
+.mc-btn::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: rgba(110,72,25,0.4);
+  transition: background 0.2s;
+}
+
+.mc-btn:hover:not(:disabled) {
+  background: rgba(200,100,20,0.13);
+  border-color: rgba(240,160,48,0.5);
+  color: #f0e0c0;
+  transform: translateX(5px);
+  box-shadow: 0 4px 22px rgba(200,100,20,0.18);
+}
+
+.mc-btn:hover:not(:disabled)::after { background: #f0a030; }
+
+.mc-btn.correct {
+  background: rgba(60,115,48,0.22);
+  border-color: #52914a;
+  color: #88cc78;
+  transform: translateX(5px);
+  box-shadow: 0 0 22px rgba(82,145,74,0.32);
+  animation: correctPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.mc-btn.correct::after { background: #52914a; }
+
+@keyframes correctPop {
+  0% { transform: translateX(5px) scale(1); }
+  40% { transform: translateX(5px) scale(1.025); }
+  100% { transform: translateX(5px) scale(1); }
+}
+
+.mc-btn.wrong {
+  background: rgba(140,36,18,0.22);
+  border-color: #b83018;
+  color: #f08070;
+  animation: wrongJolt 0.32s ease;
+}
+
+.mc-btn.wrong::after { background: #b83018; }
+
+@keyframes wrongJolt {
+  0%,100% { transform: translateX(5px); }
+  25% { transform: translateX(0px); }
+  75% { transform: translateX(10px); }
+}
+
+.mc-btn.disabled-neutral { opacity: 0.38; cursor: default; }
+
+.feedback-box {
+  border-radius: 7px;
+  padding: 0.88rem 1.1rem;
+  font-size: 0.88rem;
+  line-height: 1.62;
+  margin-bottom: 0.8rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.feedback-box.correct {
+  background: rgba(55,110,44,0.16);
+  border: 1px solid rgba(82,145,74,0.48);
+  color: #88cc78;
+  box-shadow: 0 0 22px rgba(82,145,74,0.1);
+}
+
+.feedback-box.correct::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(82,145,74,0.55), transparent);
+}
+
+.feedback-box.wrong {
+  background: rgba(140,36,18,0.16);
+  border: 1px solid rgba(184,48,24,0.48);
+  color: #f08070;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #7a3e0c 0%, #b86c18 50%, #f0a030 100%);
+  border: none;
+  border-radius: 7px;
+  padding: 0.78rem 2rem;
+  color: #1a0c04;
+  font-family: 'Cinzel', serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.12em;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  margin-top: 0.6rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 22px rgba(200,120,30,0.35);
+  text-transform: uppercase;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  transition: left 0.4s;
+}
+
+.btn-primary:hover::before { left: 100%; }
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #9a5018 0%, #d88028 50%, #ffc040 100%);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 10px 35px rgba(240,160,48,0.55), 0 0 50px rgba(200,100,20,0.22);
+}
+
+.btn-primary:active { transform: translateY(0) scale(0.97); }
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid rgba(110,72,25,0.48);
+  border-radius: 7px;
+  padding: 0.55rem 1.2rem;
+  color: rgba(195,140,60,0.65);
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.btn-secondary:hover {
+  border-color: rgba(240,160,48,0.48);
+  color: #f0a030;
+  background: rgba(200,100,20,0.08);
+}
+
+.sort-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  background: rgba(8,5,2,0.65);
+  border: 1px dashed rgba(110,72,25,0.38);
+  border-radius: 7px;
+  min-height: 55px;
+  margin-bottom: 0.8rem;
+}
+
+.sort-chip {
+  background: rgba(55,32,10,0.7);
+  border: 1px solid rgba(110,72,25,0.5);
+  border-radius: 5px;
+  padding: 0.35rem 0.82rem;
+  font-size: 0.86rem;
+  color: #c0a060;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  user-select: none;
+}
+
+.sort-chip:hover {
+  background: rgba(200,100,20,0.2);
+  border-color: rgba(240,160,48,0.58);
+  color: #f0e0a0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(200,100,20,0.22);
+}
+
+.sort-chip.placed {
+  background: rgba(55,110,44,0.2);
+  border-color: rgba(82,145,74,0.58);
+  color: #88cc78;
+}
+
+.sort-chip.wrong-placed {
+  background: rgba(140,36,18,0.2);
+  border-color: rgba(184,48,24,0.58);
+  color: #f08070;
+}
+
+.sort-zones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.sort-zone {
+  background: rgba(8,5,2,0.65);
+  border: 1px solid rgba(110,72,25,0.3);
+  border-radius: 7px;
+  padding: 0.8rem;
+  min-height: 80px;
+  transition: border-color 0.2s;
+}
+
+.sort-zone:hover { border-color: rgba(200,120,40,0.48); }
+
+.sort-zone-title {
+  font-size: 0.7rem;
+  color: #f0a030;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-bottom: 0.5rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+}
+
+.sort-zone-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+.hotspot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+}
+
+.hotspot-cell {
+  background: rgba(38,22,7,0.78);
+  border: 2px solid rgba(110,72,25,0.38);
+  border-radius: 9px;
+  padding: 1rem 0.6rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  font-size: 0.83rem;
+  color: #b09860;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.4rem;
+  line-height: 1.35;
+  position: relative;
+  overflow: hidden;
+}
+
+.hotspot-cell:hover:not(.correct):not(.wrong) {
+  border-color: rgba(240,160,48,0.6);
+  background: rgba(200,100,20,0.16);
+  color: #f0e0c0;
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 28px rgba(200,100,20,0.22);
+}
+
+.hotspot-cell.correct {
+  border-color: #52914a;
+  background: rgba(55,110,44,0.22);
+  color: #88cc78;
+  box-shadow: 0 0 22px rgba(82,145,74,0.32);
+  animation: cellPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes cellPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.hotspot-cell.wrong {
+  border-color: #b83018;
+  background: rgba(140,36,18,0.22);
+  color: #f08070;
+  animation: wrongJolt 0.32s ease;
+}
+
+.hotspot-cell.locked { opacity: 0.38; cursor: default; }
+.hotspot-icon { font-size: 1.6rem; filter: drop-shadow(0 0 4px rgba(200,164,94,0.28)); }
+
+.pw-screen {
+  width: 100%;
+  max-width: 860px;
+  margin-top: 0.8rem;
+  background: linear-gradient(160deg, rgba(6,4,2,0.98) 0%, rgba(18,11,4,0.99) 100%);
+  border: 1px solid rgba(200,120,40,0.28);
+  border-radius: 12px;
+  padding: 2.8rem 2rem;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.92), inset 0 1px 0 rgba(200,164,94,0.14);
+  position: relative;
+  overflow: hidden;
+}
+
+.pw-screen::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(240,160,48,0.5), rgba(240,200,80,0.7), rgba(240,160,48,0.5), transparent);
+}
+
+.pw-icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.8rem;
+  filter: drop-shadow(0 0 16px rgba(240,160,48,0.65));
+  animation: dinoFloat 3s ease-in-out infinite;
+}
+
+.pw-title {
+  font-family: 'Cinzel', serif;
+  color: #f0c060;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 22px rgba(240,192,96,0.45);
+}
+
+.pw-hint-text { color: rgba(200,155,70,0.55); font-size: 0.83rem; font-style: italic; margin-bottom: 1.5rem; }
+
+.pw-input {
+  background: rgba(6,4,2,0.92);
+  border: 2px solid rgba(110,72,25,0.5);
+  border-radius: 7px;
+  padding: 0.88rem 1.4rem;
+  color: #f0e0c0;
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+  letter-spacing: 0.3em;
+  outline: none;
+  transition: all 0.3s;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.6);
+  text-transform: uppercase;
+}
+
+.pw-input:focus { border-color: #f0a030; box-shadow: 0 0 22px rgba(240,160,48,0.32), inset 0 2px 10px rgba(0,0,0,0.6); }
+
+.pw-input.shake {
+  animation: shake 0.4s;
+  border-color: #b83018;
+  box-shadow: 0 0 20px rgba(184,48,24,0.32);
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.pw-error { color: #f08070; font-size: 0.8rem; margin-top: 0.5rem; min-height: 1.2rem; font-style: italic; }
+
+.pw-hint-toggle {
+  font-size: 0.75rem;
+  color: rgba(200,120,40,0.55);
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 1rem;
+  display: inline-block;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.06em;
+  transition: color 0.2s;
+}
+
+.pw-hint-toggle:hover { color: #f0a030; }
+
+.pw-hint-reveal {
+  margin-top: 0.8rem;
+  background: rgba(55,32,10,0.55);
+  border: 1px solid rgba(110,72,25,0.4);
+  border-radius: 7px;
+  padding: 0.72rem 1.1rem;
+  font-size: 0.85rem;
+  color: #c0a870;
+  font-style: italic;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.final-screen {
+  width: 100%;
+  max-width: 860px;
+  margin-top: 0.8rem;
+  background: linear-gradient(160deg, rgba(4,12,4,0.98) 0%, rgba(8,18,6,0.99) 100%);
+  border: 1px solid rgba(82,145,74,0.38);
+  border-radius: 12px;
+  padding: 3.5rem 2.4rem;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.92), 0 0 80px rgba(82,145,74,0.07);
+  position: relative;
+  overflow: hidden;
+}
+
+.final-screen::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #52914a, #88cc78, #52914a, transparent);
+}
+
+.final-trophy {
+  font-size: 5rem;
+  margin-bottom: 1.2rem;
+  filter: drop-shadow(0 0 22px rgba(240,192,96,0.75));
+  animation: trophyDrop 0.8s cubic-bezier(0.34,1.56,0.64,1) both, dinoFloat 3s ease-in-out 0.8s infinite;
+}
+
+@keyframes trophyDrop {
+  0% { transform: translateY(-60px) scale(0.4); opacity: 0; }
+  80% { transform: translateY(6px) scale(1.08); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.final-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 2.1rem;
+  color: #f0c060;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 32px rgba(240,192,96,0.55), 0 0 65px rgba(200,100,20,0.3);
+  letter-spacing: 0.04em;
+  animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+  0% { text-shadow: 0 0 22px rgba(240,192,96,0.42), 0 0 40px rgba(200,100,20,0.2); }
+  100% { text-shadow: 0 0 45px rgba(240,192,96,0.88), 0 0 85px rgba(200,100,20,0.42); }
+}
+
+.final-sub { color: rgba(138,180,125,0.75); font-style: italic; margin-bottom: 1.5rem; font-size: 1rem; }
+
+.final-summary {
+  background: rgba(55,110,44,0.08);
+  border: 1px solid rgba(82,145,74,0.22);
+  border-radius: 8px;
+  padding: 1.4rem 1.6rem;
+  text-align: left;
+  margin: 1.5rem 0;
+}
+
+.final-summary h3 { font-family: 'Cinzel', serif; color: #f0c060; font-size: 0.98rem; margin-bottom: 0.9rem; letter-spacing: 0.08em; font-weight: 700; }
+
+.final-summary ul { list-style: none; display: flex; flex-direction: column; gap: 0.42rem; }
+
+.final-summary li { font-size: 0.87rem; color: #88cc78; padding-left: 1.4rem; position: relative; }
+
+.final-summary li::before { content: "✓"; position: absolute; left: 0; color: #52914a; font-weight: 700; }
+
+.tag {
+  display: inline-block;
+  background: rgba(200,164,94,0.1);
+  border: 1px solid rgba(200,164,94,0.22);
+  border-radius: 3px;
+  padding: 0.14rem 0.5rem;
+  font-size: 0.74rem;
+  color: #f0a030;
+  font-family: 'Cinzel', serif;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+  letter-spacing: 0.06em;
+}
+
+.gap-fill-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.2rem; font-size: 0.93rem; color: #c0a870; line-height: 2; margin-bottom: 0.8rem; }
+
+.gap-input {
+  background: rgba(8,5,2,0.85);
+  border: 1px solid rgba(110,72,25,0.5);
+  border-radius: 5px;
+  padding: 0.22rem 0.5rem;
+  color: #f0e0c0;
+  font-family: 'Lato', sans-serif;
+  font-size: 0.93rem;
+  width: 110px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.gap-input:focus { border-color: #f0a030; }
+.gap-input.correct { border-color: #52914a; background: rgba(55,110,44,0.12); color: #88cc78; }
+.gap-input.wrong { border-color: #b83018; background: rgba(140,36,18,0.12); color: #f08070; }
+
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(200,164,94,0.07);
+  border: 1px solid rgba(200,164,94,0.18);
+  border-radius: 20px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.76rem;
+  color: #f0a030;
+  margin-bottom: 0.5rem;
+  font-family: 'Cinzel', serif;
+}
+
+.divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(110,72,25,0.38), transparent);
+  margin: 1.4rem 0;
+}
+
+.intro-screen {
+  width: 100%;
+  max-width: 860px;
+  margin-top: 1rem;
+  background: linear-gradient(160deg, rgba(40,24,8,0.96) 0%, rgba(20,12,4,0.98) 100%);
+  border: 1px solid rgba(170,110,35,0.18);
+  border-radius: 12px;
+  padding: 2.8rem 2.4rem;
+  box-shadow: 0 22px 65px rgba(0,0,0,0.85), inset 0 1px 0 rgba(200,164,94,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.intro-screen::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(240,160,48,0.55), rgba(240,200,80,0.8), rgba(240,160,48,0.55), transparent);
+}
+
+.intro-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.95rem;
+  color: #f0c060;
+  text-align: center;
+  margin-bottom: 0.3rem;
+  line-height: 1.2;
+  text-shadow: 0 0 32px rgba(240,192,96,0.52), 0 0 65px rgba(200,100,20,0.22);
+  animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+.intro-subtitle {
+  text-align: center;
+  color: rgba(200,135,40,0.52);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-bottom: 1.8rem;
+  font-family: 'Cinzel', serif;
+}
+
+.char-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1.2rem 0; }
+
+.char-card {
+  background: rgba(12,7,2,0.75);
+  border: 1px solid rgba(110,72,25,0.28);
+  border-radius: 9px;
+  padding: 1rem 0.8rem;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+  overflow: hidden;
+}
+
+.char-card:hover {
+  border-color: rgba(200,120,40,0.42);
+  background: rgba(28,16,5,0.85);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+}
+
+.char-emoji { font-size: 2.4rem; margin-bottom: 0.42rem; filter: drop-shadow(0 0 7px rgba(200,164,94,0.3)); }
+.char-name { font-family: 'Cinzel', serif; color: #f0c060; font-size: 0.93rem; margin-bottom: 0.25rem; font-weight: 700; }
+.char-role { font-size: 0.72rem; color: rgba(200,155,70,0.55); font-style: italic; line-height: 1.4; }
+
+.mission-box {
+  background: rgba(200,100,20,0.055);
+  border: 1px solid rgba(200,120,40,0.18);
+  border-radius: 9px;
+  padding: 1.1rem 1.3rem;
+  margin: 1.2rem 0;
+  font-size: 0.9rem;
+  color: #c0a870;
+  line-height: 1.72;
+  font-weight: 300;
+  position: relative;
+}
+
+.mission-box::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 10px; bottom: 10px;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, #f0a030, transparent);
+  border-radius: 1px;
+}
+
+.mission-box strong { color: #f0c060; font-weight: 700; }
+.mission-box em { color: #f0a030; font-style: italic; }
+`;
+
+
+// ─── ROOMS DATA ─────────────────────────────────────────────────────────────
+
+const DINO_COMMENTS = ["Willkommen, kleine Entdecker. Ich bin Rex – 150 Millionen Jahre alt und trotzdem klüger als euer Lehrer.", "Raum Zwei! Schon mal von 'have' und 'has' gehört? Ich leider auch. 150 Mio. Jahre und immer noch Grammatik.", "Das Present Perfect! Frisch wie ein Fossil. Ich habe gewartet – auf Englisch: 'I have waited'. Seht ihr's?", "Signalwörter! Die kleinen Zeitdetektive. Ich habe *bereits* gewartet – 'already'. Gut merken.", "Fragen im Present Perfect! 'Have you ever seen a Diplodocus?' – Nein? Dann seid ihr hier richtig.", "W-Fragen! 'What have you done?!' fragt mein Skelett jeden Besucher. Die meisten schweigen.", "Since und for! Ich liege hier SEIT 150 Millionen Jahren. That's a lot of 'for'.", "Der Endraum! Present Perfect vs. Simple Past. Ich bin gestorben – Simple Past. Ich bin NOCH hier – Perfect!"];
+const ROOMS = [
+// ── RAUM 1: Grundbegriffe ──────────────────────────────────────────────
+{
+  id: 1,
+  title: "Der Eingangssaal",
+  subtitle: "Raum 1 · Grundbegriffe & Einführung",
+  storyEN: false,
+  story: /*#__PURE__*/React.createElement(React.Fragment, null, "Karla, Gillian und Rajiv stehen vor dem Natural History Museum in London. Rajiv ist frisch genesen – er hatte Windpocken, und seine Freunde haben alles getan, um ihn aufzumuntern. ", /*#__PURE__*/React.createElement("em", null, "Aber plötzlich geschieht etwas Seltsames:"), " Die Eingangstür schnappt zu, die Lichter flackern, und Dinosaurierknochen an den Wänden beginnen zu leuchten. Ein knochiges Diplodocus-Skelett dreht seinen langen Hals zu ihnen. ", /*#__PURE__*/React.createElement("em", null, "Rex der Knochendetektiv"), " braucht eure Hilfe!"),
+  task: "multiple-choice",
+  heading: "Aufgabe 1: Was ist das Present Perfect?",
+  question: "Das Present Perfect wird gebildet aus:",
+  options: [{
+    text: "have/has + Infinitiv",
+    wrong: true,
+    feedback: "Fast! Aber der Infinitiv ist die Grundform (z.B. 'go'). Das Present Perfect braucht das Past Participle – also die 3. Form (z.B. 'gone'). Beispiel: She has gone to the museum."
+  }, {
+    text: "have/has + Past Participle (3. Form)",
+    correct: true,
+    feedback: "Genau! Das Present Perfect = have/has + Past Participle. Beispiel: Karla has visited the museum. (visited = Past Participle von 'visit')"
+  }, {
+    text: "did + Infinitiv",
+    wrong: true,
+    feedback: "Nein – das ist das Simple Past! 'Did' + Infinitiv = Vergangenheit abgeschlossen. Das Present Perfect braucht have/has + 3. Form."
+  }, {
+    text: "will + Infinitiv",
+    wrong: true,
+    feedback: "Das ist die Zukunft (Future Simple)! Für das Present Perfect: have/has + Past Participle."
+  }],
+  task2: "multiple-choice",
+  heading2: "Aufgabe 2: Was drückt das Present Perfect aus?",
+  question2: "Welche Aussage beschreibt das Present Perfect am besten?",
+  options2: [{
+    text: "Eine Handlung, die genau gestern stattgefunden hat.",
+    wrong: true,
+    feedback: "Bei 'gestern' (yesterday) würde man das Simple Past nehmen. Das Present Perfect ist zeitlich nicht so genau eingegrenzt."
+  }, {
+    text: "Eine Handlung in der Vergangenheit, die noch Einfluss auf die Gegenwart hat.",
+    correct: true,
+    feedback: "Richtig! Das Present Perfect verbindet Vergangenheit und Gegenwart. Rajiv HAS HAD chickenpox – er hatte Windpocken, und das ist jetzt vorbei. Die Freundschaft besteht weiter."
+  }, {
+    text: "Eine Handlung, die in der Zukunft passieren wird.",
+    wrong: true,
+    feedback: "Nein, das wäre die Zukunft. Das Present Perfect schaut zurück – auf Dinge, die passiert sind und heute noch relevant sind."
+  }, {
+    text: "Eine regelmäßige Gewohnheit der Gegenwart.",
+    wrong: true,
+    feedback: "Gewohnheiten werden mit dem Simple Present ausgedrückt. Das Present Perfect betrifft vergangene Ereignisse mit Gegenwartsbezug."
+  }],
+  password: "PERFECT",
+  passwordHint: "Der Name dieser Zeitform auf Englisch – mit dem ersten Wort beginnend, das 'have' beschreibt."
+},
+// ── RAUM 2: have vs. has ──────────────────────────────────────────────
+{
+  id: 2,
+  title: "Das Skelett-Archiv",
+  subtitle: "Raum 2 · have oder has?",
+  story: /*#__PURE__*/React.createElement(React.Fragment, null, "Rex führt euch in das staubige Archiv. Hunderte von Knochen hängen beschriftet an der Wand. ", /*#__PURE__*/React.createElement("em", null, "„Jedes Tier hatte seine Geschichte,\""), " sagt Rex. ", /*#__PURE__*/React.createElement("em", null, "„Und jede Geschichte braucht das richtige Hilfsverb. Sonst bricht die Zeitlinie!\""), " Rajiv schaut nervös auf seinen Notizblock. Gillian tippt schon auf ihrem imaginären Keyboard. Und Karla… Karla liest die Schilder."),
+  task: "sorting",
+  heading: "Aufgabe 1: Sortiere die Pronomen!",
+  instruction: "Ordne die Pronomen der richtigen Spalte zu – HAVE oder HAS.",
+  categories: ["have", "has"],
+  categoryLabels: ["HAVE", "HAS"],
+  items: [{
+    text: "I",
+    correct: 0
+  }, {
+    text: "he",
+    correct: 1
+  }, {
+    text: "she",
+    correct: 1
+  }, {
+    text: "it",
+    correct: 1
+  }, {
+    text: "you",
+    correct: 0
+  }, {
+    text: "we",
+    correct: 0
+  }, {
+    text: "they",
+    correct: 0
+  }],
+  task2: "multiple-choice",
+  heading2: "Aufgabe 2: Lücken füllen",
+  question2: "Gillian sagt: '_________ Rajiv ever visited the Natural History Museum?' – Welches Hilfsverb fehlt?",
+  options2: [{
+    text: "Have",
+    wrong: true,
+    feedback: "Nein – 'Rajiv' ist eine 3. Person Singular (er/she/it-Form). Daher brauchen wir HAS, nicht HAVE."
+  }, {
+    text: "Has",
+    correct: true,
+    feedback: "Richtig! Rajiv = er = 3. Person Singular → HAS. 'Has Rajiv ever visited the Natural History Museum?' – perfekte Frage!"
+  }, {
+    text: "Is",
+    wrong: true,
+    feedback: "Nein, 'is' wäre für eine Present-Continuous-Form (is visiting). Für das Present Perfect brauchen wir have oder has."
+  }, {
+    text: "Did",
+    wrong: true,
+    feedback: "'Did' gehört zum Simple Past. Für das Present Perfect: Have/Has + Past Participle."
+  }],
+  password: "HAVE",
+  passwordHint: "Das Hilfsverb, das du bei 'I', 'you', 'we', 'they' verwendest – vier Buchstaben."
+},
+// ── RAUM 3: Present Perfect bilden + irregular verbs ─────────────────
+{
+  id: 3,
+  title: "Das Fossiliengewölbe",
+  subtitle: "Raum 3 · Sätze bilden & unregelmäßige Verben",
+  story: /*#__PURE__*/React.createElement(React.Fragment, null, "Tief im Gewölbe leuchten versteinerte Knochen in blauem Fossilienglanz. Rex deutet auf eine uralte Inschrift: ", /*#__PURE__*/React.createElement("em", null, "„Nur wer die Vergangenheit kennt, kann die Zukunft öffnen.\""), " Rajiv erinnert sich: „Im Radiowunsch haben wir für dich ein Lied spielen lassen!\" – ", /*#__PURE__*/React.createElement("em", null, "„Das war schön,\""), " sagt Rex leise. ", /*#__PURE__*/React.createElement("em", null, "„Aber jetzt: Verben!\"")),
+  task: "hotspot",
+  heading: "Aufgabe 1: Welche Past Participles sind RICHTIG?",
+  instruction: "Klicke auf alle Felder mit KORREKTEN Past Participles (3. Form).",
+  hotspots: [{
+    label: "go → goed",
+    icon: "🦶",
+    wrong: true,
+    feedback: "'go' ist unregelmäßig! Das Past Participle heißt 'gone', nicht 'goed'. Niemals einfach -ed anhängen bei unregelmäßigen Verben!"
+  }, {
+    label: "visit → visited",
+    icon: "🏛",
+    correct: true,
+    feedback: "Richtig! 'visit' ist regelmäßig: visit → visited → visited. Einfach -ed dranhängen."
+  }, {
+    label: "see → seen",
+    icon: "👁",
+    correct: true,
+    feedback: "Richtig! 'see' ist unregelmäßig: see → saw → seen. Gut gemerkt!"
+  }, {
+    label: "buy → buyed",
+    icon: "🎵",
+    wrong: true,
+    feedback: "'buy' ist unregelmäßig: buy → bought → bought. Nicht 'buyed'! Gillian hat im Musikgeschäft CDs gesucht – leider zu teuer."
+  }, {
+    label: "have → had",
+    icon: "🦴",
+    correct: true,
+    feedback: "Richtig! 'have' ist unregelmäßig: have → had → had. Rajiv HAS HAD chickenpox."
+  }, {
+    label: "listen → listened",
+    icon: "📻",
+    correct: true,
+    feedback: "Richtig! 'listen' ist regelmäßig: listen + -ed = listened. They have listened to the radio."
+  }, {
+    label: "run → runned",
+    icon: "🏃",
+    wrong: true,
+    feedback: "'run' ist unregelmäßig: run → ran → run. Das Past Participle ist wieder 'run', nicht 'runned'!"
+  }, {
+    label: "write → written",
+    icon: "✍️",
+    correct: true,
+    feedback: "Richtig! 'write' ist unregelmäßig: write → wrote → written. Karla has written a message."
+  }, {
+    label: "play → played",
+    icon: "🎸",
+    correct: true,
+    feedback: "Richtig! 'play' ist regelmäßig: play + -ed = played. The DJ has played their song request."
+  }],
+  correctHotspotCount: 5,
+  task2: "multiple-choice",
+  heading2: "Aufgabe 2: Satz vervollständigen",
+  question2: "Karla und Gillian _________ (go) to the record shop.",
+  options2: [{
+    text: "have went",
+    wrong: true,
+    feedback: "'went' ist das Simple Past von 'go'. Das Past Participle heißt 'gone'. Also: have gone, nicht have went!"
+  }, {
+    text: "has gone",
+    wrong: true,
+    feedback: "Fast! Aber 'Karla and Gillian' = sie (Plural) = 'they'. Plural → HAVE, nicht HAS. Richtig: have gone."
+  }, {
+    text: "have gone",
+    correct: true,
+    feedback: "Perfekt! 'go' → 'gone' (unregelmäßig). Karla and Gillian = Plural → have. Karla and Gillian have gone to the record shop."
+  }, {
+    text: "have goed",
+    wrong: true,
+    feedback: "'goed' existiert nicht! 'go' ist unregelmäßig. Das Past Participle ist 'gone', nicht 'goed'."
+  }],
+  password: "GONE",
+  passwordHint: "Das Past Participle des Verbs 'go' – vier Buchstaben."
+},
+// ── RAUM 4: Signalwörter ────────────────────────────────────────────
+{
+  id: 4,
+  title: "Der Signalstein",
+  subtitle: "Raum 4 · Signalwörter des Present Perfect",
+  story: /*#__PURE__*/React.createElement(React.Fragment, null, "An der Wand des nächsten Raums leuchten goldene Wörter. Rex hält eine Lupe hoch: ", /*#__PURE__*/React.createElement("em", null, "„Signalwörter sind wie Zeitdetektive. Sie verraten dir, welche Zeitform gemeint ist.\""), " Gillian knipst ihr Notizbuch auf. Rajiv nickt aufgeregt – er erinnert sich, dass im Radio ", /*#__PURE__*/React.createElement("em", null, "„already\""), " gefallen ist, als sein Lied gespielt wurde."),
+  task: "sorting",
+  heading: "Aufgabe 1: Ordne die Signalwörter zu!",
+  instruction: "Welche Wörter gehören zum Present Perfect, welche zum Simple Past?",
+  categories: ["pp", "sp"],
+  categoryLabels: ["Present Perfect", "Simple Past"],
+  items: [{
+    text: "already",
+    correct: 0
+  }, {
+    text: "yesterday",
+    correct: 1
+  }, {
+    text: "ever",
+    correct: 0
+  }, {
+    text: "never",
+    correct: 0
+  }, {
+    text: "last week",
+    correct: 1
+  }, {
+    text: "just",
+    correct: 0
+  }, {
+    text: "yet",
+    correct: 0
+  }, {
+    text: "in 2020",
+    correct: 1
+  }, {
+    text: "recently",
+    correct: 0
+  }],
+  task2: "multiple-choice",
+  heading2: "Aufgabe 2: Welcher Satz ist korrekt?",
+  question2: "Wähle den grammatikalisch richtigen Satz:",
+  options2: [{
+    text: "Rajiv has had chickenpox yesterday.",
+    wrong: true,
+    feedback: "'Yesterday' ist ein Signal für das Simple Past! Correct: 'Rajiv had chickenpox yesterday.' Mit 'yesterday' immer Simple Past!"
+  }, {
+    text: "Rajiv already had chickenpox.",
+    wrong: true,
+    feedback: "'Already' ist ein Signalwort für das Present Perfect. Richtig: 'Rajiv has already had chickenpox.' → have/has + Past Participle."
+  }, {
+    text: "The girls have just bought the CD.",
+    wrong: true,
+    feedback: "Fast korrekt (have + just = PP), aber laut Geschichte war die CD zu teuer – sie haben sie NICHT gekauft. Inhaltlich falsch. Grammatisch wäre es korrekt, aber der Inhalt stimmt nicht."
+  }, {
+    text: "They have just played his song on the radio.",
+    correct: true,
+    feedback: "Perfekt! 'just' ist ein Present-Perfect-Signalwort. They have just played = sie haben gerade gespielt. Grammatik UND Inhalt stimmen!"
+  }],
+  password: "ALREADY",
+  passwordHint: "Das Present-Perfect-Signalwort für 'schon' / 'bereits' – 7 Buchstaben."
+},
+// ── RAUM 5: Entscheidungsfragen ────────────────────────────────────
+{
+  id: 5,
+  title: "Das Fragenlabyrinth",
+  subtitle: "Raum 5 · Entscheidungsfragen im Present Perfect",
+  story: /*#__PURE__*/React.createElement(React.Fragment, null, "Rex dreht sich um und blockiert den Ausgang mit seinem langen Schwanz. ", /*#__PURE__*/React.createElement("em", null, "„Kein Durchkommen ohne Fragen!\""), " rumpelt er. Karla rollt die Augen. ", /*#__PURE__*/React.createElement("em", null, "„Er meint Fragesätze,\""), " flüstert sie. Gillian tippt schon die Struktur ins Notizbuch. Das Labyrinth aus Knochen und Fossilien wartet auf eure Antworten."),
+  task: "multiple-choice",
+  heading: "Aufgabe 1: Richtige Fragstruktur",
+  question: "Wie fragt man im Present Perfect richtig? (Entscheidungsfrage)",
+  options: [{
+    text: "Do Karla and Gillian visit the museum?",
+    wrong: true,
+    feedback: "Das ist eine Simple-Present-Frage mit 'do'. Im Present Perfect: Have/Has + Subjekt + Past Participle. Also: Have Karla and Gillian visited the museum?"
+  }, {
+    text: "Have Karla and Gillian visited the museum?",
+    correct: true,
+    feedback: "Perfekt! Entscheidungsfrage: Have/Has + Subjekt + Past Participle. Have Karla and Gillian visited the museum? → Ja/Nein-Antwort möglich."
+  }, {
+    text: "Karla and Gillian have visited the museum?",
+    wrong: true,
+    feedback: "Das ist ein Aussagesatz mit Fragezeichen – keine echte Fragestruktur. In Fragen kommt Have/Has VOR das Subjekt: Have Karla and Gillian...?"
+  }, {
+    text: "Has Karla and Gillian visited the museum?",
+    wrong: true,
+    feedback: "'Karla and Gillian' = Plural → HAVE, nicht HAS! Has wäre nur für Singular-Subjekte (he, she, it, Rajiv)."
+  }],
+  task2: "hotspot",
+  heading2: "Aufgabe 2: Welche Kurzantworten sind korrekt?",
+  instruction: "Klicke auf alle richtigen Short Answers:",
+  hotspots: [{
+    label: "Yes, he has.",
+    icon: "✅",
+    correct: true,
+    feedback: "Richtig! Kurzantwort für he/she/it: Yes, he/she/it has. Oder: No, he/she/it hasn't."
+  }, {
+    label: "Yes, they have.",
+    icon: "✅",
+    correct: true,
+    feedback: "Richtig! Für Plural (they/we/you/I): Yes, they/we/you/I have. Korrekt!"
+  }, {
+    label: "Yes, he have.",
+    icon: "❌",
+    wrong: true,
+    feedback: "Falsch! Bei 'he' brauchen wir 'has', nicht 'have'. Richtig: Yes, he has."
+  }, {
+    label: "No, she hasn't.",
+    icon: "✅",
+    correct: true,
+    feedback: "Richtig! Verneinung: has not = hasn't. No, she hasn't – perfekte Kurzantwort."
+  }, {
+    label: "No, they hasn't.",
+    icon: "❌",
+    wrong: true,
+    feedback: "Falsch! Bei 'they' (Plural): have not = haven't. Richtig: No, they haven't."
+  }, {
+    label: "No, I haven't.",
+    icon: "✅",
+    correct: true,
+    feedback: "Richtig! Verneinung für I/you/we/they: have not = haven't. No, I haven't – korrekt!"
+  }],
+  correctHotspotCount: 4,
+  password: "HAVE",
+  passwordHint: "Welches Hilfsverb kommt an den ANFANG einer Present-Perfect-Frage, wenn das Subjekt 'they' ist?"
+},
+// ── RAUM 6: W-Fragen ──────────────────────────────────────────────
+{
+  id: 6,
+  title: "Die Fragengalerie",
+  subtitle: "Raum 6 · W-Fragen im Present Perfect",
+  story: /*#__PURE__*/React.createElement(React.Fragment, null, "Auf goldenen Tafeln stehen W-Fragen eingraviert. ", /*#__PURE__*/React.createElement("em", null, "„Wer, was, wo, wann, wie,\""), " murmelt Rex. ", /*#__PURE__*/React.createElement("em", null, "„Im Englischen: who, what, where, when, how. Aber die Struktur bleibt gleich.\""), " David, der Fossilien-Experte der Gruppe, hat sich im Museum verlaufen – er wollte das Diplodocus-Skelett zeichnen. Rajiv und die anderen müssen ihn finden."),
+  task: "multiple-choice",
+  heading: "Aufgabe 1: W-Fragen richtig bilden",
+  question: "Wie fragt man: 'Was hat David im Museum gesehen?'",
+  options: [{
+    text: "What David has seen in the museum?",
+    wrong: true,
+    feedback: "Bei W-Fragen kommt ZUERST das Fragewort, dann das Hilfsverb (has/have), dann das Subjekt. Also: What HAS David seen? – Nicht: What David has..."
+  }, {
+    text: "What has David seen in the museum?",
+    correct: true,
+    feedback: "Perfekt! W-Frage Struktur: Fragewort + have/has + Subjekt + Past Participle. What HAS David SEEN in the museum? – Bravo!"
+  }, {
+    text: "What has David saw in the museum?",
+    wrong: true,
+    feedback: "'Saw' ist das Simple Past, nicht das Past Participle. 'See' → saw → seen. Richtig: What has David SEEN in the museum?"
+  }, {
+    text: "Where has David seen in the museum?",
+    wrong: true,
+    feedback: "Das Fragewort passt nicht. 'Was gesehen?' fragt man mit 'What', nicht 'Where'. Where fragt nach dem Ort."
+  }],
+  task2: "sorting",
+  heading2: "Aufgabe 2: Bring die Frage in die richtige Reihenfolge!",
+  instruction: "Die Frage 'Warum sind sie ins Museum gegangen?' – Ordne zu:",
+  categories: ["order"],
+  categoryLabels: ["Richtige Reihenfolge →"],
+  items: [{
+    text: "Why",
+    correct: 0,
+    pos: 1
+  }, {
+    text: "have",
+    correct: 0,
+    pos: 2
+  }, {
+    text: "they",
+    correct: 0,
+    pos: 3
+  }, {
+    text: "gone",
+    correct: 0,
+    pos: 4
+  }, {
+    text: "to the museum?",
+    correct: 0,
+    pos: 5
+  }],
+  isOrdering: true,
+  correctOrder: ["Why", "have", "they", "gone", "to the museum?"],
+  password: "WHAT",
+  passwordHint: "Das englische W-Fragewort, das nach einer Sache oder einer Handlung fragt – 4 Buchstaben."
+},
+// ── RAUM 7: since and for ─────────────────────────────────────────
+{
+  id: 7,
+  title: "Die Zeitkapsel",
+  subtitle: "Raum 7 · since und for",
+  story: /*#__PURE__*/React.createElement(React.Fragment, null, "Rex zeigt auf zwei alte Sanduhren an der Wand. ", /*#__PURE__*/React.createElement("em", null, "„Zeit ist alles,\""), " sagt er düster. ", /*#__PURE__*/React.createElement("em", null, "„Ich bin SEIT 150 Millionen Jahren hier. Das ist 'since the Jurassic'. Ihr seid SEIT zehn Minuten hier – das ist 'for ten minutes'.\""), " Gillian runzelt die Stirn. Rajiv notiert. Karla nickt wissend."),
+  task: "multiple-choice",
+  heading: "Aufgabe 1: since oder for?",
+  question: "Rajiv has been ill _________ three days. Welches Wort fehlt?",
+  options: [{
+    text: "since",
+    wrong: true,
+    feedback: "'Since' gibt an, SEIT WANN etwas begonnen hat – also einen Zeitpunkt: since Monday, since 2023, since he was a child. Drei Tage ist eine DAUER, keine Zeitangabe → for!"
+  }, {
+    text: "for",
+    correct: true,
+    feedback: "Richtig! 'For' + Zeitdauer (how long?): for three days, for two weeks, for a year. Since = Zeitpunkt. For = Zeitdauer. Rajiv has been ill FOR three days. ✓"
+  }, {
+    text: "during",
+    wrong: true,
+    feedback: "'During' bedeutet 'während' und kommt vor Nomen: during the lesson, during summer. Für Present-Perfect-Zeitangaben: since (Zeitpunkt) oder for (Dauer)."
+  }, {
+    text: "ago",
+    wrong: true,
+    feedback: "'Ago' zeigt den Abstand zur Gegenwart (vor... Zeit) und wird mit Simple Past benutzt: three days AGO = vor drei Tagen. Für Present Perfect: for oder since."
+  }],
+  task2: "sorting",
+  heading2: "Aufgabe 2: since oder for? Sortiere!",
+  instruction: "Ordne die Zeitangaben der richtigen Präposition zu.",
+  categories: ["since", "for"],
+  categoryLabels: ["since (Zeitpunkt)", "for (Zeitdauer)"],
+  items: [{
+    text: "last Monday",
+    correct: 0
+  }, {
+    text: "two hours",
+    correct: 1
+  }, {
+    text: "2019",
+    correct: 0
+  }, {
+    text: "a long time",
+    correct: 1
+  }, {
+    text: "he was born",
+    correct: 0
+  }, {
+    text: "three weeks",
+    correct: 1
+  }, {
+    text: "this morning",
+    correct: 0
+  }, {
+    text: "five minutes",
+    correct: 1
+  }],
+  password: "FOR",
+  passwordHint: "Die Präposition für ZEITDAUER im Present Perfect – 3 Buchstaben."
+},
+// ── RAUM 8: PP vs. Simple Past ──────────────────────────────────
+{
+  id: 8,
+  title: "Der Schlusskorridor",
+  subtitle: "Raum 8 · Present Perfect vs. Simple Past",
+  story: /*#__PURE__*/React.createElement(React.Fragment, null, "Die letzte Tür steht vor euch. Rex wirft euch einen langen Blick zu. ", /*#__PURE__*/React.createElement("em", null, "„Dieser Raum ist der schwerste,\""), " sagt er feierlich. ", /*#__PURE__*/React.createElement("em", null, "„Denn hier unterscheidet ihr die beiden großen Vergangenheitsformen. Wer das schafft, öffnet die Zeitkapsel und befreit das Museum.\""), " Karla nimmt tief Luft. Gillian und Rajiv stellen sich neben sie."),
+  task: "multiple-choice",
+  heading: "Aufgabe 1: Present Perfect oder Simple Past?",
+  question: "Rajiv _________ chickenpox last month. Welche Form ist korrekt?",
+  options: [{
+    text: "has had",
+    wrong: true,
+    feedback: "'Last month' ist eine abgeschlossene Zeitangabe → Simple Past! Das Present Perfect benutzt man OHNE solche genauen Zeitangaben. Richtig: Rajiv HAD chickenpox last month."
+  }, {
+    text: "had",
+    correct: true,
+    feedback: "Richtig! 'Last month' = klarer Zeitpunkt in der Vergangenheit → Simple Past. 'Rajiv had chickenpox last month.' Das Present Perfect würde man ohne diese Zeitangabe benutzen: He has had chickenpox. (irgendwann, Bezug zur Gegenwart)"
+  }, {
+    text: "have had",
+    wrong: true,
+    feedback: "Doppelt falsch: 1. 'Last month' → Simple Past. 2. Rajiv = er → has, nicht have. Richtig: Rajiv had chickenpox last month."
+  }, {
+    text: "has have",
+    wrong: true,
+    feedback: "'Has have' existiert nicht! Für Present Perfect: has + Past Participle (had). Aber mit 'last month' brauchen wir Simple Past: had."
+  }],
+  task2: "sorting",
+  heading2: "Aufgabe 2: Welche Zeitform – Present Perfect oder Simple Past?",
+  instruction: "Ordne die Sätze der richtigen Zeitform zu.",
+  categories: ["pp", "sp"],
+  categoryLabels: ["Present Perfect", "Simple Past"],
+  items: [{
+    text: "The girls have called the radio station.",
+    correct: 0
+  }, {
+    text: "Karla went to the park yesterday.",
+    correct: 1
+  }, {
+    text: "David has never seen a Diplodocus before.",
+    correct: 0
+  }, {
+    text: "They visited the museum in 2024.",
+    correct: 1
+  }, {
+    text: "Gillian has just bought a newspaper.",
+    correct: 0
+  }, {
+    text: "Rajiv was ill last week.",
+    correct: 1
+  }],
+  password: "DIPLODOCUS",
+  passwordHint: "Der Name des Dinosauriers, dessen Skelett David so faszinierte – auf Englisch. 9 Buchstaben."
+}];
+
+// ─── COMPONENTS ─────────────────────────────────────────────────────────────
+
+function DinoBox({
+  roomIndex
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "dino-box"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "dino-avatar"
+  }, "🦕"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "dino-name"
+  }, "Rex · Knochendetektiv"), /*#__PURE__*/React.createElement("div", {
+    className: "dino-text"
+  }, DINO_COMMENTS[roomIndex])));
+}
+function MultiChoice({
+  question,
+  options,
+  onComplete
+}) {
+  const [selected, setSelected] = useState(null);
+  const [feedback, setFeedback] = useState(null);
+  const [correct, setCorrect] = useState(false);
+  function pick(i) {
+    if (selected !== null) return;
+    setSelected(i);
+    const opt = options[i];
+    const isCorrect = !!opt.correct;
+    setFeedback({
+      text: opt.feedback,
+      correct: isCorrect
+    });
+    setCorrect(isCorrect);
+  }
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: "0.95rem",
+      color: "#d4c4a8",
+      marginBottom: "0.9rem",
+      lineHeight: 1.6
+    }
+  }, question), /*#__PURE__*/React.createElement("div", {
+    className: "mc-options"
+  }, options.map((opt, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    className: `mc-btn${selected === i ? opt.correct ? " correct" : " wrong" : selected !== null ? " disabled-neutral" : ""}`,
+    onClick: () => pick(i),
+    disabled: selected !== null
+  }, opt.text))), feedback && /*#__PURE__*/React.createElement("div", {
+    className: `feedback-box ${feedback.correct ? "correct" : "wrong"}`
+  }, feedback.correct ? "✅ " : "❌ ", feedback.text), correct && /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: onComplete
+  }, "Weiter →"));
+}
+function SortingTask({
+  categories,
+  categoryLabels,
+  items,
+  onComplete,
+  isOrdering
+}) {
+  const [placed, setPlaced] = useState({});
+  const [selected, setSelected] = useState(null);
+  const [checked, setChecked] = useState(false);
+  const [result, setResult] = useState(null);
+  function reset() {
+    setPlaced({});
+    setSelected(null);
+    setChecked(false);
+    setResult(null);
+  }
+  const allPlaced = Object.keys(placed).length === items.length;
+
+  // Remove an item from its zone back to the pool
+  function removeItem(itemIdx) {
+    if (checked) return;
+    setPlaced(prev => {
+      const n = {
+        ...prev
+      };
+      delete n[itemIdx];
+      return n;
+    });
+    setSelected(null);
+  }
+
+  // Click a chip in the pool → select it
+  function selectChip(i) {
+    if (checked) return;
+    setSelected(selected === i ? null : i);
+  }
+
+  // Click a zone button → assign selected chip there
+  function assignTo(catIdx) {
+    if (selected === null || checked) return;
+    setPlaced(prev => ({
+      ...prev,
+      [selected]: catIdx
+    }));
+    setSelected(null);
+  }
+
+  // For ordering mode: click pool chip → append to sequence
+  function appendToOrder(i) {
+    if (checked) return;
+    const nextPos = Object.keys(placed).length;
+    setPlaced(prev => ({
+      ...prev,
+      [i]: nextPos
+    }));
+  }
+  function check() {
+    let ok = true;
+    if (isOrdering) {
+      const ordered = Object.entries(placed).sort(([, a], [, b]) => a - b).map(([i]) => items[parseInt(i)].text);
+      ok = JSON.stringify(ordered) === JSON.stringify(items.map(it => it.text));
+    } else {
+      for (let i = 0; i < items.length; i++) {
+        if (placed[i] !== items[i].correct) {
+          ok = false;
+          break;
+        }
+      }
+    }
+    setChecked(true);
+    setResult(ok);
+  }
+  const unplacedItems = items.map((item, i) => ({
+    item,
+    i
+  })).filter(({
+    i
+  }) => placed[i] === undefined);
+
+  // ── ORDERING MODE ──
+  if (isOrdering) {
+    const orderedPlaced = Object.entries(placed).sort(([, a], [, b]) => a - b).map(([i]) => ({
+      idx: parseInt(i),
+      item: items[parseInt(i)]
+    }));
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: "0.85rem",
+        color: "#8a7058",
+        marginBottom: "0.6rem"
+      }
+    }, "Klicke die Wörter in der richtigen Reihenfolge an:"), /*#__PURE__*/React.createElement("div", {
+      className: "sort-pool"
+    }, unplacedItems.map(({
+      item,
+      i
+    }) => /*#__PURE__*/React.createElement("span", {
+      key: i,
+      className: "sort-chip",
+      onClick: () => !checked && appendToOrder(i)
+    }, item.text)), unplacedItems.length === 0 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "#5a3e1e",
+        fontSize: "0.82rem"
+      }
+    }, "Alle platziert ↓")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginBottom: "0.8rem"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "sort-zone-title"
+    }, categoryLabels[0]), /*#__PURE__*/React.createElement("div", {
+      className: "sort-zone",
+      style: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "0.4rem",
+        padding: "0.6rem",
+        minHeight: 50
+      }
+    }, orderedPlaced.map(({
+      idx,
+      item
+    }) => /*#__PURE__*/React.createElement("span", {
+      key: idx,
+      className: `sort-chip${checked ? result ? " placed" : " wrong-placed" : ""}`,
+      onClick: () => !checked && removeItem(idx),
+      title: checked ? "" : "Klicken zum Entfernen"
+    }, item.text)))), !checked && allPlaced && /*#__PURE__*/React.createElement("button", {
+      className: "btn-primary",
+      onClick: check
+    }, "Überprüfen"), checked && /*#__PURE__*/React.createElement("div", {
+      className: `feedback-box ${result ? "correct" : "wrong"}`
+    }, result ? "✅ Richtige Reihenfolge! Why have they gone to the museum? – perfekt!" : "❌ Nicht ganz. Richtig: Why / have / they / gone / to the museum?"), checked && result && /*#__PURE__*/React.createElement("button", {
+      className: "btn-primary",
+      onClick: onComplete
+    }, "Weiter →"), checked && !result && /*#__PURE__*/React.createElement("button", {
+      className: "btn-secondary",
+      style: {
+        marginTop: "0.5rem"
+      },
+      onClick: reset
+    }, "Nochmal"));
+  }
+
+  // ── SORTING MODE ──
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: "0.85rem",
+      color: "#8a7058",
+      marginBottom: "0.6rem"
+    }
+  }, "Wähle ein Wort aus und klicke dann auf die passende Kategorie. Zum Zurücklegen: Wort in der Spalte anklicken."), /*#__PURE__*/React.createElement("div", {
+    className: "sort-pool"
+  }, unplacedItems.map(({
+    item,
+    i
+  }) => /*#__PURE__*/React.createElement("span", {
+    key: i,
+    className: `sort-chip${selected === i ? " placed" : ""}`,
+    onClick: () => selectChip(i)
+  }, item.text)), unplacedItems.length === 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "#5a3e1e",
+      fontSize: "0.82rem"
+    }
+  }, "Alle einsortiert ↓")), selected !== null && !checked && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "0.5rem",
+      alignItems: "center",
+      margin: "0.5rem 0",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: "0.82rem",
+      color: "#c8a45e"
+    }
+  }, "„", items[selected].text, "\" zuordnen zu:"), categories.map((cat, ci) => /*#__PURE__*/React.createElement("button", {
+    key: ci,
+    className: "btn-secondary",
+    style: {
+      fontSize: "0.82rem",
+      padding: "0.3rem 0.8rem"
+    },
+    onClick: () => assignTo(ci)
+  }, categoryLabels[ci])), /*#__PURE__*/React.createElement("button", {
+    className: "btn-secondary",
+    style: {
+      fontSize: "0.82rem",
+      padding: "0.3rem 0.6rem"
+    },
+    onClick: () => setSelected(null)
+  }, "✕")), /*#__PURE__*/React.createElement("div", {
+    className: "sort-zones"
+  }, categories.map((cat, ci) => /*#__PURE__*/React.createElement("div", {
+    key: ci
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sort-zone-title"
+  }, categoryLabels[ci]), /*#__PURE__*/React.createElement("div", {
+    className: "sort-zone"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sort-zone-chips"
+  }, items.map((item, ii) => {
+    if (placed[ii] !== ci) return null;
+    const isCorrect = item.correct === ci;
+    return /*#__PURE__*/React.createElement("span", {
+      key: ii,
+      className: `sort-chip${checked ? isCorrect ? " placed" : " wrong-placed" : ""}`,
+      onClick: () => removeItem(ii),
+      title: checked ? "" : "Klicken zum Zurücklegen"
+    }, item.text);
+  })))))), !checked && allPlaced && /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: check
+  }, "Überprüfen"), checked && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: `feedback-box ${result ? "correct" : "wrong"}`
+  }, result ? "✅ Alle richtig zugeordnet! Sehr gut!" : "❌ Nicht alle stimmen. Klicke auf 'Nochmal' und schau genauer hin!"), result ? /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: onComplete
+  }, "Weiter →") : /*#__PURE__*/React.createElement("button", {
+    className: "btn-secondary",
+    style: {
+      marginTop: "0.5rem"
+    },
+    onClick: reset
+  }, "Nochmal")));
+}
+function HotspotTask({
+  hotspots,
+  correctCount,
+  instruction,
+  onComplete
+}) {
+  const [clicked, setClicked] = useState({});
+  const [locked, setLocked] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+  function clickCell(i) {
+    if (locked || clicked[i] !== undefined) return;
+    const h = hotspots[i];
+    const isCorrect = !!h.correct;
+    const newClicked = {
+      ...clicked,
+      [i]: isCorrect
+    };
+    setClicked(newClicked);
+    setFeedback({
+      text: h.feedback,
+      correct: isCorrect
+    });
+    const correctClicked = Object.values(newClicked).filter(Boolean).length;
+    const wrongClicked = Object.values(newClicked).filter(v => !v).length;
+    if (wrongClicked >= 2 || correctClicked === correctCount) {
+      setLocked(true);
+    }
+  }
+  const correctClicked = Object.values(clicked).filter(Boolean).length;
+  const done = locked && correctClicked === correctCount;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: "0.85rem",
+      color: "#8a7058",
+      marginBottom: "0.7rem"
+    }
+  }, instruction), /*#__PURE__*/React.createElement("div", {
+    className: "hotspot-grid"
+  }, hotspots.map((h, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: `hotspot-cell${clicked[i] === true ? " correct" : clicked[i] === false ? " wrong" : locked ? " locked" : ""}`,
+    onClick: () => clickCell(i)
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "hotspot-icon"
+  }, h.icon), /*#__PURE__*/React.createElement("span", null, h.label)))), feedback && /*#__PURE__*/React.createElement("div", {
+    className: `feedback-box ${feedback.correct ? "correct" : "wrong"}`
+  }, feedback.correct ? "✅ " : "❌ ", feedback.text), done && /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: onComplete
+  }, "Weiter →"), locked && !done && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "feedback-box wrong"
+  }, "Zu viele Fehler! Schau nochmal – regelmäßige Verben enden auf -ed, unregelmäßige muss man auswendig lernen!"), /*#__PURE__*/React.createElement("button", {
+    className: "btn-secondary",
+    onClick: () => {
+      setClicked({});
+      setLocked(false);
+      setFeedback(null);
+    }
+  }, "Nochmal")));
+}
+function PasswordScreen({
+  roomNum,
+  password,
+  hint,
+  onUnlock
+}) {
+  const [val, setVal] = useState("");
+  const [error, setError] = useState("");
+  const [showHint, setShowHint] = useState(false);
+  const [shake, setShake] = useState(false);
+  function tryPW() {
+    if (val.trim().toUpperCase() === password.toUpperCase()) {
+      onUnlock();
+    } else {
+      setError("Das Passwort stimmt nicht. Schau zurück auf den Rauminhalt!");
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+    }
+  }
+  const icons = ["🔐", "🗝️", "🦴", "📜", "🔍", "❓", "⏳", "🏆"];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "pw-screen"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pw-icon"
+  }, icons[roomNum - 1] || "🔐"), /*#__PURE__*/React.createElement("div", {
+    className: "pw-title"
+  }, "Raumschloss – Raum ", roomNum), /*#__PURE__*/React.createElement("p", {
+    className: "pw-hint-text"
+  }, "Gib das Passwort ein, um in den nächsten Raum zu gelangen."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: "0.6rem"
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    className: `pw-input${shake ? " shake" : ""}`,
+    value: val,
+    onChange: e => {
+      setVal(e.target.value);
+      setError("");
+    },
+    onKeyDown: e => e.key === "Enter" && tryPW(),
+    placeholder: "Passwort eingeben…"
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: tryPW
+  }, "Entsperren"), /*#__PURE__*/React.createElement("div", {
+    className: "pw-error"
+  }, error), /*#__PURE__*/React.createElement("span", {
+    className: "pw-hint-toggle",
+    onClick: () => setShowHint(!showHint)
+  }, showHint ? "Tipp verbergen" : "Tipp anzeigen"), showHint && /*#__PURE__*/React.createElement("div", {
+    className: "pw-hint-reveal"
+  }, "💡 ", hint)));
+}
+function FinalScreen({
+  onRestart
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "final-screen"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "final-trophy"
+  }, "🏆"), /*#__PURE__*/React.createElement("div", {
+    className: "final-title"
+  }, "Museum gerettet!"), /*#__PURE__*/React.createElement("div", {
+    className: "final-sub"
+  }, "Rex der Knochendetektiv verbeugt sich tief."), /*#__PURE__*/React.createElement("div", {
+    className: "dino-box",
+    style: {
+      textAlign: "left",
+      marginBottom: "1.5rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "dino-avatar"
+  }, "🦕"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "dino-name"
+  }, "Rex · Knochendetektiv"), /*#__PURE__*/React.createElement("div", {
+    className: "dino-text"
+  }, "„Ich habe in 150 Millionen Jahren nicht so kluge Köpfe gesehen. Ihr habt das Present Perfect gemeistert – have + Past Participle, Signalwörter, since und for, Fragen, und den Unterschied zum Simple Past. Ich bin beeindruckt. Das sage ich selten. Eigentlich nie. Also genießt den Moment.\""))), /*#__PURE__*/React.createElement("div", {
+    className: "final-summary"
+  }, /*#__PURE__*/React.createElement("h3", null, "Was ihr gelernt habt:"), /*#__PURE__*/React.createElement("ul", null, /*#__PURE__*/React.createElement("li", null, "Present Perfect = have/has + Past Participle"), /*#__PURE__*/React.createElement("li", null, "have (I/you/we/they) vs. has (he/she/it)"), /*#__PURE__*/React.createElement("li", null, "Regelmäßige (-ed) und unregelmäßige Verben"), /*#__PURE__*/React.createElement("li", null, "Signalwörter: already, just, ever, never, yet, recently"), /*#__PURE__*/React.createElement("li", null, "Entscheidungsfragen: Have/Has + Subjekt + PP?"), /*#__PURE__*/React.createElement("li", null, "W-Fragen: W-Wort + have/has + Subjekt + PP?"), /*#__PURE__*/React.createElement("li", null, "since (Zeitpunkt) vs. for (Zeitdauer)"), /*#__PURE__*/React.createElement("li", null, "Present Perfect vs. Simple Past – wann welche Form?"))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "#8aac80",
+      fontSize: "0.88rem",
+      marginBottom: "1.2rem",
+      fontStyle: "italic"
+    }
+  }, "Karla, Gillian und Rajiv verlassen das Museum. David hat seinen Zettel mit dem Diplodocus fertig – und Rex? Rex kehrt zurück in seinen Glaskasten. Bis zum nächsten Mal."), /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    onClick: onRestart
+  }, "Von vorne spielen"));
+}
+function RoomContent({
+  room,
+  onFinish
+}) {
+  const [phase, setPhase] = useState("task1"); // task1 | task2 | pw
+  const [task1done, setTask1done] = useState(false);
+  const [task2done, setTask2done] = useState(false);
+  function finishTask1() {
+    setTask1done(true);
+    setPhase("task2");
+  }
+  function finishTask2() {
+    setTask2done(true);
+    setPhase("pw");
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "corner-deco tl"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "corner-deco tr"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "corner-deco bl"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "corner-deco br"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "room-subtitle"
+  }, room.subtitle), /*#__PURE__*/React.createElement("div", {
+    className: "room-title"
+  }, room.title), /*#__PURE__*/React.createElement(DinoBox, {
+    roomIndex: room.id - 1
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "story-text"
+  }, room.story), /*#__PURE__*/React.createElement("hr", {
+    className: "divider"
+  }), (phase === "task1" || phase === "task2" || phase === "pw") && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "task-heading"
+  }, room.heading), room.task === "multiple-choice" && /*#__PURE__*/React.createElement(MultiChoice, {
+    question: room.question,
+    options: room.options,
+    onComplete: finishTask1
+  }), room.task === "sorting" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: "0.88rem",
+      color: "#8a7058",
+      marginBottom: "0.6rem"
+    }
+  }, room.instruction), /*#__PURE__*/React.createElement(SortingTask, {
+    categories: room.categories,
+    categoryLabels: room.categoryLabels,
+    items: room.items,
+    isOrdering: room.isOrdering,
+    onComplete: finishTask1
+  })), room.task === "hotspot" && /*#__PURE__*/React.createElement(HotspotTask, {
+    hotspots: room.hotspots,
+    correctCount: room.correctHotspotCount,
+    instruction: room.instruction,
+    onComplete: finishTask1
+  })), (phase === "task2" || phase === "pw") && task1done && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("hr", {
+    className: "divider"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "task-heading"
+  }, room.heading2), room.task2 === "multiple-choice" && /*#__PURE__*/React.createElement(MultiChoice, {
+    question: room.question2,
+    options: room.options2,
+    onComplete: finishTask2
+  }), room.task2 === "sorting" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: "0.88rem",
+      color: "#8a7058",
+      marginBottom: "0.6rem"
+    }
+  }, room.instruction), /*#__PURE__*/React.createElement(SortingTask, {
+    categories: room.categories2 || room.categories,
+    categoryLabels: room.categoryLabels2 || room.categoryLabels,
+    items: room.items2 || room.items,
+    isOrdering: room.isOrdering2,
+    onComplete: finishTask2
+  })), room.task2 === "hotspot" && /*#__PURE__*/React.createElement(HotspotTask, {
+    hotspots: room.hotspots2 || room.hotspots,
+    correctCount: room.correctHotspotCount2 || room.correctHotspotCount,
+    instruction: room.instruction2 || room.instruction,
+    onComplete: finishTask2
+  })), phase === "pw" && task1done && task2done && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("hr", {
+    className: "divider"
+  }), /*#__PURE__*/React.createElement(PasswordScreen, {
+    roomNum: room.id,
+    password: room.password,
+    hint: room.passwordHint,
+    onUnlock: onFinish
+  })));
+}
+
+// Fix: Raum 2 task2, Raum 5 task2 use correct hotspot data
+// Patch rooms with separate task2 data where needed:
+ROOMS[1].task2 = "multiple-choice"; // already set
+ROOMS[4].task2 = "hotspot";
+ROOMS[4].hotspots2 = ROOMS[4].hotspots; // reuse definition above
+
+// Fix room 4 sorting to use items from pool correctly
+// Room 4 task2 is multiple-choice, already defined ✓
+
+// Room 6 task2 needs ordering fix
+ROOMS[5].task2 = "sorting";
+ROOMS[5].categories2 = ["order"];
+ROOMS[5].categoryLabels2 = ["Richtige Reihenfolge →"];
+ROOMS[5].items2 = [{
+  text: "Why",
+  correct: 0
+}, {
+  text: "have",
+  correct: 0
+}, {
+  text: "they",
+  correct: 0
+}, {
+  text: "gone",
+  correct: 0
+}, {
+  text: "to the museum?",
+  correct: 0
+}];
+ROOMS[5].isOrdering2 = true;
+
+// ─── MAIN APP ───────────────────────────────────────────────────────────────
+
+function App() {
+  const [screen, setScreen] = useState("intro"); // intro | room | final
+  const [currentRoom, setCurrentRoom] = useState(0); // 0-indexed
+  const [completed, setCompleted] = useState([]);
+  function startGame() {
+    setScreen("room");
+    setCurrentRoom(0);
+  }
+  function finishRoom() {
+    const roomIdx = currentRoom;
+    setCompleted(prev => [...prev, roomIdx]);
+    if (roomIdx + 1 >= ROOMS.length) {
+      setScreen("final");
+      setTimeout(window.triggerConfetti, 400);
+      setTimeout(window.triggerConfetti, 1300);
+    } else {
+      setCurrentRoom(roomIdx + 1);
+    }
+  }
+  function restart() {
+    setScreen("intro");
+    setCurrentRoom(0);
+    setCompleted([]);
+  }
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("style", null, STYLE), /*#__PURE__*/React.createElement("div", {
+    className: "game-wrap"
+  }, screen !== "final" && /*#__PURE__*/React.createElement("div", {
+    className: "progress-bar"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "progress-dots"
+  }, ROOMS.map((r, i) => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    key: `dot-${i}`,
+    className: `dot${i === currentRoom && screen === "room" ? " active" : ""}${completed.includes(i) ? " done" : ""}`
+  }, completed.includes(i) ? "✓" : i + 1), i < ROOMS.length - 1 && /*#__PURE__*/React.createElement("div", {
+    key: `line-${i}`,
+    className: `dot-line${completed.includes(i) ? " done" : ""}`
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "progress-label"
+  }, screen === "intro" ? "Natural History Museum · Present Perfect Escape Room" : screen === "room" ? `Raum ${currentRoom + 1} von ${ROOMS.length}` : "Fertig!")), screen === "intro" && /*#__PURE__*/React.createElement("div", {
+    className: "intro-screen"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "intro-title"
+  }, "Das Museum der Zeitformen"), /*#__PURE__*/React.createElement("div", {
+    className: "intro-subtitle"
+  }, "A Present Perfect Escape Room · Klasse 6 · Englisch"), /*#__PURE__*/React.createElement("div", {
+    className: "mission-box"
+  }, /*#__PURE__*/React.createElement("strong", null, "Die Lage:"), " Karla, Gillian und Rajiv besuchen das Natural History Museum in London, um ihren Freund David zu treffen – der sich mal wieder nicht losreißen konnte vom Diplodocus-Skelett. Doch plötzlich flackert das Licht. Die Knochen beginnen zu leuchten. Und ein Skelett dreht den Kopf…", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("strong", null, "Rex, der Knochendetektiv"), " hat die Zeitkapsel des Museums versiegelt. Sie öffnet sich nur, wenn ihr alle acht Rätsel löst – auf Englisch, mit dem ", /*#__PURE__*/React.createElement("em", null, "Present Perfect"), ". Schafft ihr es, bevor der Museumswächter zurückkommt?"), /*#__PURE__*/React.createElement("div", {
+    className: "char-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "char-card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "char-emoji"
+  }, "👧"), /*#__PURE__*/React.createElement("div", {
+    className: "char-name"
+  }, "Karla"), /*#__PURE__*/React.createElement("div", {
+    className: "char-role"
+  }, "Die Beobachterin. Liest alles, vergisst nichts.")), /*#__PURE__*/React.createElement("div", {
+    className: "char-card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "char-emoji"
+  }, "👦"), /*#__PURE__*/React.createElement("div", {
+    className: "char-name"
+  }, "Gillian"), /*#__PURE__*/React.createElement("div", {
+    className: "char-role"
+  }, "Clever & schnell. Hat schon 3 Ideen, bevor du die Frage verstehst.")), /*#__PURE__*/React.createElement("div", {
+    className: "char-card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "char-emoji"
+  }, "🧒"), /*#__PURE__*/React.createElement("div", {
+    className: "char-name"
+  }, "Rajiv"), /*#__PURE__*/React.createElement("div", {
+    className: "char-role"
+  }, "Frisch genesen. Dankbar. Und neugierig auf alles."))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      marginTop: "1rem"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "dino-box",
+    style: {
+      display: "inline-flex",
+      maxWidth: 500,
+      textAlign: "left"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "dino-avatar"
+  }, "🦕"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "dino-name"
+  }, "Rex · Knochendetektiv · 150 Mio. Jahre alt"), /*#__PURE__*/React.createElement("div", {
+    className: "dino-text"
+  }, "„Ich habe auf euch gewartet. Lange. Sehr lange. Beweist mir, dass ihr das Present Perfect kennt – und ich lasse euch gehen. Vielleicht.\"")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      marginTop: "1.5rem"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn-primary",
+    style: {
+      fontSize: "1rem",
+      padding: "0.8rem 2.2rem"
+    },
+    onClick: startGame
+  }, "Museum betreten →"))), screen === "room" && /*#__PURE__*/React.createElement(RoomContent, {
+    key: currentRoom,
+    room: ROOMS[currentRoom],
+    onFinish: finishRoom
+  }), screen === "final" && /*#__PURE__*/React.createElement(FinalScreen, {
+    onRestart: restart
+  })));
+}
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+</script>
+</body>
+</html>
