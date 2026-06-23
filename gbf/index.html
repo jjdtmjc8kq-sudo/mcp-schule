@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gesamtschule Berger Feld — Schule mit Zukunft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,700;0,900;1,900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --blue: #283582;
+  --mag: #E5007E;
+  --teal: #00AF9F;
+  --green: #93C01F;
+  --dark: #08080b;
+  --dark2: #0f0f14;
+  --dark3: #151520;
+  --text: #fff;
+  --muted: rgba(255,255,255,0.38);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--dark);
+  color: var(--text);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CURSOR ── */
+.cursor {
+  position: fixed; width: 10px; height: 10px;
+  background: var(--mag); border-radius: 50%;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: transform 0.06s, width 0.2s, height 0.2s, background 0.2s;
+  mix-blend-mode: difference;
+}
+.cursor-ring {
+  position: fixed; width: 38px; height: 38px;
+  border: 1.5px solid rgba(229,0,126,0.5); border-radius: 50%;
+  pointer-events: none; z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: transform 0.18s cubic-bezier(.16,1,.3,1), width 0.3s, height 0.3s, border-color 0.3s;
+}
+body:hover .cursor { opacity: 1; }
+.cursor.hover { width: 16px; height: 16px; background: var(--teal); }
+.cursor-ring.hover { width: 56px; height: 56px; border-color: rgba(0,175,159,0.6); }
+
+/* ── PROGRESS BAR ── */
+#progress {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: linear-gradient(90deg, var(--blue), var(--mag), var(--teal), var(--green));
+  z-index: 1000; width: 0%; transition: width 0.1s;
+}
+
+/* ── LOADER ── */
+#loader {
+  position: fixed; inset: 0; z-index: 9000;
+  background: var(--dark); display: flex;
+  flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+}
+.loader-bars { display: flex; gap: 8px; align-items: flex-end; }
+.lbar {
+  width: 10px; border-radius: 2px;
+  animation: lbounce 0.9s ease-in-out infinite alternate;
+}
+.lbar:nth-child(1) { background: var(--blue); height: 24px; animation-delay: 0s; }
+.lbar:nth-child(2) { background: var(--mag); height: 40px; animation-delay: 0.15s; }
+.lbar:nth-child(3) { background: var(--teal); height: 30px; animation-delay: 0.3s; }
+.lbar:nth-child(4) { background: var(--green); height: 50px; animation-delay: 0.45s; }
+@keyframes lbounce { to { height: 8px; } }
+.loader-name {
+  font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: rgba(255,255,255,0.25); font-weight: 400;
+}
+.loader-pct {
+  font-size: 48px; font-weight: 900; color: rgba(255,255,255,0.06);
+  letter-spacing: -2px; position: absolute;
+}
+#loader.out { animation: loaderFade 0.7s ease forwards; }
+@keyframes loaderFade {
+  to { opacity: 0; pointer-events: none; visibility: hidden; }
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 64px;
+  background: rgba(8,8,11,0); backdrop-filter: blur(0px);
+  border-bottom: 1px solid rgba(255,255,255,0);
+  transition: background 0.4s, backdrop-filter 0.4s, border-color 0.4s;
+}
+nav.scrolled {
+  background: rgba(8,8,11,0.88);
+  backdrop-filter: blur(24px);
+  border-bottom-color: rgba(255,255,255,0.05);
+}
+.logo { display: flex; align-items: center; gap: 4px; text-decoration: none; }
+.logo-bar {
+  width: 5px; height: 20px; border-radius: 1px;
+  animation: logoPulse 2.8s ease-in-out infinite;
+}
+.logo-bar:nth-child(1) { background: var(--blue); animation-delay: 0s; }
+.logo-bar:nth-child(2) { background: var(--mag); animation-delay: 0.18s; }
+.logo-bar:nth-child(3) { background: var(--teal); animation-delay: 0.36s; }
+.logo-bar:nth-child(4) { background: var(--green); animation-delay: 0.54s; }
+@keyframes logoPulse {
+  0%,100% { transform: scaleY(1); opacity:1; }
+  50% { transform: scaleY(0.5); opacity:0.6; }
+}
+.logo-text { margin-left: 12px; }
+.logo-name { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; display: block; }
+.logo-city { font-size: 9px; color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; display: block; }
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a {
+  font-size: 10px; color: var(--muted); text-decoration: none;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  transition: color 0.2s; position: relative; padding-bottom: 3px;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: 0; left: 0;
+  width: 0; height: 1px; background: var(--mag);
+  transition: width 0.25s ease;
+}
+.nav-links a:hover { color: #fff; }
+.nav-links a:hover::after { width: 100%; }
+.nav-cta {
+  background: var(--mag); color: #fff;
+  padding: 9px 22px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  text-decoration: none; border-radius: 2px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: inline-block;
+}
+.nav-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(229,0,126,0.45);
+  color: #fff;
+}
+
+/* ── HERO ── */
+#hero {
+  position: relative; min-height: 100vh;
+  display: flex; align-items: center;
+  overflow: hidden;
+}
+#hero-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+.hero-inner {
+  position: relative; z-index: 2;
+  width: 100%; padding: 120px 40px 80px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 60px; align-items: center;
+}
+.hero-eyebrow {
+  font-size: 9px; color: var(--teal); letter-spacing: 0.25em;
+  text-transform: uppercase; margin-bottom: 22px;
+  display: flex; align-items: center; gap: 12px;
+  opacity: 0; animation: slideUp 0.7s 2.6s ease forwards;
+}
+.hero-eyebrow::before {
+  content: ''; width: 28px; height: 1px; background: var(--teal);
+  display: block;
+}
+.hero-title {
+  font-size: clamp(44px, 6vw, 72px);
+  font-weight: 900; line-height: 0.95;
+  letter-spacing: -2px; margin-bottom: 28px;
+  opacity: 0; animation: slideUp 0.8s 2.8s ease forwards;
+}
+.hero-title .line { display: block; overflow: hidden; }
+.hero-title .line span { display: inline-block; }
+.t-white { color: #fff; }
+.t-mag { color: var(--mag); }
+.t-teal { color: var(--teal); }
+.t-green { color: var(--green); }
+.hero-desc {
+  font-size: 13px; color: var(--muted); line-height: 1.9;
+  max-width: 360px; margin-bottom: 36px;
+  opacity: 0; animation: slideUp 0.7s 3.1s ease forwards;
+}
+.hero-btns {
+  display: flex; gap: 14px;
+  opacity: 0; animation: slideUp 0.7s 3.3s ease forwards;
+}
+.btn-primary {
+  background: var(--mag); color: #fff;
+  padding: 14px 28px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  border: none; border-radius: 2px; cursor: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative; overflow: hidden;
+}
+.btn-primary::before {
+  content: ''; position: absolute; inset: 0;
+  background: rgba(255,255,255,0.1);
+  transform: translateX(-100%); transition: transform 0.35s ease;
+}
+.btn-primary:hover::before { transform: translateX(0); }
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(229,0,126,0.5); }
+.btn-ghost {
+  background: transparent; color: rgba(255,255,255,0.5);
+  padding: 14px 28px; font-size: 11px; letter-spacing: 0.08em;
+  text-transform: uppercase; border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 2px; cursor: none;
+  transition: border-color 0.25s, color 0.25s, transform 0.2s;
+}
+.btn-ghost:hover {
+  border-color: var(--teal); color: var(--teal);
+  transform: translateY(-3px);
+}
+.hero-scroll-hint {
+  position: absolute; bottom: 36px; left: 50%;
+  transform: translateX(-50%); z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  opacity: 0; animation: fadeIn 1s 4s ease forwards;
+}
+.scroll-line {
+  width: 1px; height: 40px; background: rgba(255,255,255,0.15);
+  position: relative; overflow: hidden;
+}
+.scroll-line::after {
+  content: ''; position: absolute; top: -100%; left: 0;
+  width: 100%; height: 100%;
+  background: var(--mag);
+  animation: scrollDrop 1.5s ease 4.2s infinite;
+}
+@keyframes scrollDrop { to { top: 200%; } }
+.scroll-label {
+  font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); writing-mode: vertical-lr;
+}
+
+/* STAT GRID */
+.stat-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  opacity: 0; animation: fadeIn 0.8s 3.5s ease forwards;
+}
+.stat-tile {
+  padding: 32px 26px; min-height: 150px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  position: relative; overflow: hidden; cursor: none;
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+}
+.stat-tile:hover { transform: scale(1.05) translateY(-4px); z-index: 5; }
+.stat-tile.blue { background: var(--blue); }
+.stat-tile.mag { background: var(--mag); }
+.stat-tile.teal { background: var(--teal); }
+.stat-tile.green { background: var(--green); }
+.stat-tile:hover.blue { box-shadow: 0 20px 60px rgba(40,53,130,0.65); }
+.stat-tile:hover.mag { box-shadow: 0 20px 60px rgba(229,0,126,0.65); }
+.stat-tile:hover.teal { box-shadow: 0 20px 60px rgba(0,175,159,0.65); }
+.stat-tile:hover.green { box-shadow: 0 20px 60px rgba(147,192,31,0.65); }
+.stat-bg {
+  position: absolute; top: -10px; right: -4px;
+  font-size: 72px; font-weight: 900;
+  color: rgba(255,255,255,0.06); line-height: 1;
+  pointer-events: none; letter-spacing: -3px;
+}
+.stat-num {
+  font-size: 36px; font-weight: 900; line-height: 1;
+  color: #fff;
+}
+.stat-label {
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.55); margin-top: 6px;
+}
+
+/* ── TICKER ── */
+.ticker-wrap {
+  background: var(--mag); overflow: hidden; padding: 13px 0;
+  position: relative; z-index: 10;
+}
+.ticker { display: flex; width: max-content; animation: tickLeft 30s linear infinite; }
+.ticker:hover { animation-play-state: paused; }
+.t-item {
+  font-size: 11px; font-weight: 700; color: #fff;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 0 32px; white-space: nowrap;
+  display: flex; align-items: center; gap: 12px;
+}
+.t-item::after { content: '◆'; font-size: 6px; color: rgba(255,255,255,0.4); }
+@keyframes tickLeft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── SECTIONS ── */
+section { padding: 100px 40px; }
+.section-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 48px;
+}
+.section-kicker {
+  font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-kicker::before {
+  content: ''; display: block; width: 20px; height: 1px; background: var(--mag);
+}
+.section-title { font-size: 36px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+.section-link {
+  font-size: 10px; color: var(--muted); text-decoration: none;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 3px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.section-link:hover { color: var(--mag); border-bottom-color: var(--mag); }
+
+/* ── NEWS BENTO ── */
+.bento {
+  display: grid; grid-template-columns: 5fr 3fr;
+  gap: 3px; padding: 0 40px 100px;
+}
+.b-main {
+  background: var(--dark2); border: 1px solid rgba(255,255,255,0.04);
+  padding: 36px; border-radius: 2px;
+}
+.b-side { display: flex; flex-direction: column; gap: 3px; }
+.b-card {
+  flex: 1; padding: 28px; border-radius: 2px;
+  position: relative; overflow: hidden;
+  transition: transform 0.3s;
+}
+.b-card:hover { transform: scale(1.02); z-index: 4; }
+.b-ev { background: var(--blue); }
+.b-aw { background: var(--mag); }
+.b-aw::after { content: '★'; position: absolute; right: -14px; bottom: -28px; font-size: 110px; color: rgba(255,255,255,0.06); }
+.b-sp { background: var(--teal); }
+.b-sp::after { content: '⚽'; position: absolute; right: 8px; bottom: -6px; font-size: 70px; opacity: 0.12; }
+.b-tag {
+  font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(255,255,255,0.4); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 7px;
+}
+.b-tag-dot { width: 5px; height: 5px; border-radius: 50%; }
+.b-main h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+.b-main .b-desc { font-size: 12px; color: var(--muted); line-height: 1.9; margin-bottom: 24px; }
+.news-item {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.05);
+  cursor: none; transition: padding-left 0.25s;
+}
+.news-item:hover { padding-left: 8px; }
+.news-item:hover .ni-title { color: var(--teal); }
+.news-bar { width: 3px; border-radius: 2px; flex-shrink: 0; margin-top: 4px; }
+.news-bar.m { background: var(--mag); height: 44px; }
+.news-bar.t { background: var(--teal); height: 44px; }
+.news-bar.g { background: var(--green); height: 44px; }
+.ni-title { font-size: 13px; font-weight: 500; line-height: 1.4; margin-bottom: 4px; transition: color 0.2s; }
+.ni-meta { font-size: 9px; color: var(--muted); letter-spacing: 0.05em; }
+.ev-entry { margin-bottom: 18px; }
+.ev-big { font-size: 34px; font-weight: 900; line-height: 1; }
+.ev-mo { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.4); }
+.ev-name { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 3px; }
+.aw-num { font-size: 36px; font-weight: 900; }
+.aw-sub { font-size: 11px; color: rgba(255,255,255,0.6); line-height: 1.5; margin-top: 5px; }
+.sp-h { font-size: 15px; font-weight: 800; line-height: 1.3; }
+.sp-s { font-size: 10px; color: rgba(0,0,0,0.45); margin-top: 6px; }
+
+/* ── GALLERY ── */
+#gallery { padding: 0 40px 100px; }
+.gallery-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-rows: 200px 180px;
+  gap: 3px;
+}
+.gcell {
+  position: relative; overflow: hidden;
+  cursor: none; border-radius: 2px;
+  transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
+}
+.gcell:hover { transform: scale(1.04); z-index: 5; }
+.gcell:hover .goverlay { opacity: 1; }
+.gcell:hover .ginner { transform: scale(1.08); }
+.gcell.tall { grid-row: 1 / 3; }
+.ginner {
+  width: 100%; height: 100%;
+  transition: transform 0.6s ease;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 8px;
+}
+.goverlay {
+  position: absolute; inset: 0; opacity: 0;
+  transition: opacity 0.3s;
+  display: flex; align-items: center; justify-content: center;
+}
+.go-icon { font-size: 28px; color: #fff; }
+.gph-icon { font-size: 32px; color: rgba(255,255,255,0.22); }
+.gph-label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.18); }
+.gc-blue { background: linear-gradient(145deg, #283582 0%, #1e2770 100%); }
+.gc-dark { background: linear-gradient(145deg, #181825 0%, #0d0d18 100%); }
+.gc-teal { background: linear-gradient(145deg, #00AF9F 0%, #007c72 100%); }
+.gc-mag { background: linear-gradient(145deg, #E5007E 0%, #b00060 100%); }
+.gc-green { background: linear-gradient(145deg, #93C01F 0%, #6e9016 100%); }
+.gc-d2 { background: linear-gradient(145deg, #1a1a28 0%, #111120 100%); }
+.go-blue { background: rgba(40,53,130,0.75); }
+.go-mag { background: rgba(229,0,126,0.75); }
+.go-teal { background: rgba(0,175,159,0.75); }
+.go-green { background: rgba(147,192,31,0.75); }
+
+/* ── TIMELINE ── */
+#events { background: var(--dark2); }
+.timeline {
+  position: relative; max-width: 700px; margin: 0 auto;
+}
+.timeline::before {
+  content: ''; position: absolute;
+  left: 50%; top: 0; bottom: 0; width: 1px;
+  background: linear-gradient(to bottom, var(--blue), var(--mag), var(--teal), var(--green));
+  transform: translateX(-50%);
+}
+.tl-item {
+  display: grid; grid-template-columns: 1fr 60px 1fr;
+  gap: 0; margin-bottom: 48px;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.tl-item.visible { opacity: 1; transform: translateY(0); }
+.tl-item:nth-child(even) .tl-content { grid-column: 3; }
+.tl-item:nth-child(even) .tl-center { grid-column: 2; grid-row: 1; }
+.tl-item:nth-child(even) .tl-empty { grid-column: 1; grid-row: 1; }
+.tl-content {
+  background: var(--dark3); border: 1px solid rgba(255,255,255,0.05);
+  padding: 20px 24px; border-radius: 2px;
+  transition: border-color 0.25s, transform 0.25s;
+}
+.tl-content:hover { border-color: var(--mag); transform: scale(1.02); }
+.tl-center {
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 22px;
+}
+.tl-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--dark2); z-index: 2;
+  animation: dotPulse 2.5s ease-in-out infinite;
+}
+.tl-dot.d-blue { background: var(--blue); animation-delay: 0s; }
+.tl-dot.d-mag { background: var(--mag); animation-delay: 0.4s; }
+.tl-dot.d-teal { background: var(--teal); animation-delay: 0.8s; }
+.tl-dot.d-green { background: var(--green); animation-delay: 1.2s; }
+@keyframes dotPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(229,0,126,0); }
+  50% { box-shadow: 0 0 0 8px rgba(229,0,126,0.12); }
+}
+.tl-empty { }
+.tl-date { font-size: 9px; color: var(--mag); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+.tl-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.tl-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
+
+/* ── AWARDS ── */
+#awards { overflow: hidden; padding-bottom: 0; }
+.awards-scroll {
+  display: flex; gap: 3px; overflow-x: auto;
+  padding-bottom: 40px; scrollbar-width: none;
+}
+.awards-scroll::-webkit-scrollbar { display: none; }
+.award-card {
+  flex-shrink: 0; width: 200px; padding: 28px 24px;
+  border-radius: 2px; cursor: none;
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+  position: relative; overflow: hidden;
+}
+.award-card:hover { transform: translateY(-8px); }
+.award-card.ac-blue { background: var(--blue); }
+.award-card.ac-mag { background: rgba(229,0,126,0.1); border: 1px solid rgba(229,0,126,0.2); }
+.award-card.ac-teal { background: rgba(0,175,159,0.1); border: 1px solid rgba(0,175,159,0.2); }
+.award-card.ac-green { background: rgba(147,192,31,0.1); border: 1px solid rgba(147,192,31,0.2); }
+.award-icon { font-size: 32px; margin-bottom: 16px; }
+.award-icon.im { color: var(--mag); }
+.award-icon.it { color: var(--teal); }
+.award-icon.ig { color: var(--green); }
+.award-icon.iw { color: #fff; }
+.award-title { font-size: 13px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+.award-sub { font-size: 10px; color: var(--muted); line-height: 1.5; }
+
+/* ── PORTAL / QUICK LINKS ── */
+#portal { }
+.portal-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 3px; }
+.portal-card {
+  background: var(--dark2); border: 1px solid rgba(255,255,255,0.04);
+  padding: 28px; border-radius: 2px; cursor: none;
+  transition: border-color 0.25s, transform 0.3s;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.portal-card:hover { transform: translateY(-4px); }
+.portal-card:hover.pc-m { border-color: var(--mag); box-shadow: 0 0 40px rgba(229,0,126,0.1); }
+.portal-card:hover.pc-t { border-color: var(--teal); box-shadow: 0 0 40px rgba(0,175,159,0.1); }
+.portal-card:hover.pc-g { border-color: var(--green); box-shadow: 0 0 40px rgba(147,192,31,0.1); }
+.portal-card:hover.pc-b { border-color: var(--blue); box-shadow: 0 0 40px rgba(40,53,130,0.2); }
+.pc-icon {
+  width: 42px; height: 42px; border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; transition: transform 0.2s;
+}
+.portal-card:hover .pc-icon { transform: scale(1.15) rotate(-5deg); }
+.pc-m .pc-icon { background: rgba(229,0,126,0.15); color: var(--mag); }
+.pc-t .pc-icon { background: rgba(0,175,159,0.15); color: var(--teal); }
+.pc-g .pc-icon { background: rgba(147,192,31,0.15); color: var(--green); }
+.pc-b .pc-icon { background: rgba(40,53,130,0.25); color: #8899ff; }
+.pc-name { font-size: 14px; font-weight: 700; }
+.pc-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
+.pc-arrow { font-size: 16px; color: rgba(255,255,255,0.15); margin-top: auto; transition: color 0.2s, transform 0.2s; }
+.portal-card:hover .pc-arrow { color: #fff; transform: translateX(4px); }
+
+/* ── CTA ── */
+#cta {
+  display: grid; grid-template-columns: 1fr 1fr;
+  min-height: 300px; padding: 0; overflow: hidden;
+}
+.cta-left {
+  background: var(--mag); padding: 80px 60px;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.cta-left::before {
+  content: ''; position: absolute;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  top: -100px; right: -100px;
+  animation: ctaPulse 4s ease-in-out infinite alternate;
+}
+@keyframes ctaPulse { to { transform: scale(1.3); } }
+.cta-kicker { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 16px; }
+.cta-h { font-size: 36px; font-weight: 900; line-height: 1; letter-spacing: -1px; margin-bottom: 28px; }
+.cta-right {
+  background: var(--blue); padding: 80px 60px;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 20px; position: relative; overflow: hidden;
+}
+.cta-right::after {
+  content: 'GBF'; position: absolute;
+  right: -20px; bottom: -30px;
+  font-size: 120px; font-weight: 900; color: rgba(255,255,255,0.04);
+  letter-spacing: -6px;
+}
+.cta-fact {
+  display: flex; align-items: center; gap: 14px;
+  border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;
+}
+.cta-fact:first-child { border: none; padding-top: 0; }
+.fact-num { font-size: 28px; font-weight: 900; color: var(--teal); min-width: 80px; }
+.fact-label { font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+/* ── BIG MARQUEE ── */
+.big-mq {
+  overflow: hidden; padding: 20px 0;
+  border-top: 1px solid rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  background: var(--dark2);
+}
+.big-mq-inner { display: flex; width: max-content; animation: tickLeft 50s linear infinite reverse; }
+.big-mq-item {
+  font-size: 64px; font-weight: 900; letter-spacing: -3px;
+  color: rgba(255,255,255,0.03); padding: 0 40px;
+  white-space: nowrap; text-transform: uppercase;
+}
+
+/* ── COLOR BAR ── */
+.colorbar { display: flex; height: 5px; }
+.cb { flex: 1; transition: flex 0.4s ease; }
+.cb:hover { flex: 4; }
+.cb1 { background: var(--blue); }
+.cb2 { background: var(--mag); }
+.cb3 { background: var(--teal); }
+.cb4 { background: var(--green); }
+
+/* ── FOOTER ── */
+footer {
+  background: #040406; padding: 36px 40px;
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; gap: 40px;
+  border-top: 1px solid rgba(255,255,255,0.03);
+}
+.footer-logo { display: flex; gap: 4px; align-items: center; }
+.fbar {
+  width: 4px; height: 18px; border-radius: 1px;
+  animation: fpulse 2.5s ease-in-out infinite;
+}
+.fbar:nth-child(1) { background: var(--blue); animation-delay: 0s; }
+.fbar:nth-child(2) { background: var(--mag); animation-delay: 0.2s; }
+.fbar:nth-child(3) { background: var(--teal); animation-delay: 0.4s; }
+.fbar:nth-child(4) { background: var(--green); animation-delay: 0.6s; }
+@keyframes fpulse { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
+.footer-center { text-align: center; }
+.footer-copy { font-size: 10px; color: rgba(255,255,255,0.18); letter-spacing: 0.1em; }
+.footer-links {
+  display: flex; gap: 20px; justify-content: flex-end;
+}
+.footer-links a {
+  font-size: 9px; color: rgba(255,255,255,0.25); text-decoration: none;
+  letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--mag); }
+
+/* ── REVEAL ── */
+.reveal {
+  opacity: 0; transform: translateY(32px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.v { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+@keyframes slideUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .hero-inner { grid-template-columns: 1fr; }
+  .stat-grid { display: none; }
+  .bento { grid-template-columns: 1fr; padding: 0 20px 60px; }
+  section { padding: 60px 20px; }
+  #cta { grid-template-columns: 1fr; }
+  .portal-grid { grid-template-columns: 1fr 1fr; }
+  .gallery-grid { grid-template-columns: 1fr 1fr; }
+  nav { padding: 0 20px; }
+  .nav-links { gap: 16px; }
+  .hero-title { font-size: 36px; }
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- PROGRESS -->
+<div id="progress"></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:20px;">
+    <div class="loader-bars">
+      <div class="lbar"></div>
+      <div class="lbar"></div>
+      <div class="lbar"></div>
+      <div class="lbar"></div>
+    </div>
+    <div class="loader-name">Gesamtschule Berger Feld</div>
+    <div class="loader-pct" id="loader-pct">0</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="logo">
+    <div class="logo-bar"></div>
+    <div class="logo-bar"></div>
+    <div class="logo-bar"></div>
+    <div class="logo-bar"></div>
+    <div class="logo-text">
+      <span class="logo-name">Gesamtschule Berger Feld</span>
+      <span class="logo-city">Gelsenkirchen</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="#news">Aktuelles</a>
+    <a href="#gallery">Galerie</a>
+    <a href="#events">Termine</a>
+    <a href="#awards">Profil</a>
+    <a href="#portal">Service</a>
+    <a href="#cta" class="nav-cta">Anmeldung</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">Schule mit Zukunft · Gelsenkirchen</div>
+      <h1 class="hero-title">
+        <span class="line t-white">Bildung,</span>
+        <span class="line t-mag">die bewegt.</span>
+        <span class="line t-teal">Talente,</span>
+        <span class="line t-green">die wachsen.</span>
+      </h1>
+      <p class="hero-desc">
+        Eine Gemeinschaft, die Leistung, Inklusion und Leidenschaft vereint — mit über 1.800 Schülerinnen und Schülern mitten im Herz von Gelsenkirchen.
+      </p>
+      <div class="hero-btns">
+        <button class="btn-primary magnetic">Jetzt anmelden</button>
+        <button class="btn-ghost magnetic">Schule entdecken</button>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-tile blue">
+        <div class="stat-bg">1800</div>
+        <div class="stat-num" id="s-students">0</div>
+        <div class="stat-label">Schülerinnen &amp; Schüler</div>
+      </div>
+      <div class="stat-tile mag">
+        <div class="stat-bg">25</div>
+        <div class="stat-num" id="s-years">0</div>
+        <div class="stat-label">Jahre Friedensarbeit</div>
+      </div>
+      <div class="stat-tile teal">
+        <div class="stat-bg">DFB</div>
+        <div class="stat-num">Abi</div>
+        <div class="stat-label">Alle Abschlüsse möglich</div>
+      </div>
+      <div class="stat-tile green">
+        <div class="stat-bg">⚽</div>
+        <div class="stat-num">Elite</div>
+        <div class="stat-label">NRW-Sportschule</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll-hint">
+    <div class="scroll-line"></div>
+    <span class="scroll-label">Scroll</span>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="t-item">GBF-Alumni bei der WM 2026</span>
+    <span class="t-item">Sponsorenlauf 2026 — Danke!</span>
+    <span class="t-item">Entlassfeier Abitur 2026</span>
+    <span class="t-item">Sportfest · 03. Juli</span>
+    <span class="t-item">DFB-Eliteschule des Fußballs</span>
+    <span class="t-item">Sommerferien ab 25. Juli</span>
+    <span class="t-item">Inklusion · Vielfalt · Stärke</span>
+    <span class="t-item">GBF-Alumni bei der WM 2026</span>
+    <span class="t-item">Sponsorenlauf 2026 — Danke!</span>
+    <span class="t-item">Entlassfeier Abitur 2026</span>
+    <span class="t-item">Sportfest · 03. Juli</span>
+    <span class="t-item">DFB-Eliteschule des Fußballs</span>
+    <span class="t-item">Sommerferien ab 25. Juli</span>
+    <span class="t-item">Inklusion · Vielfalt · Stärke</span>
+  </div>
+</div>
+
+<!-- NEWS -->
+<section id="news">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-kicker">Neuigkeiten</div>
+      <h2 class="section-title">Was bewegt die GBF?</h2>
+    </div>
+    <a href="#" class="section-link">Alle Meldungen →</a>
+  </div>
+</section>
+<div class="bento">
+  <div class="b-main reveal">
+    <div class="b-tag"><span class="b-tag-dot" style="background:var(--mag)"></span>Aktuell</div>
+    <h2>Aus dem Schulalltag</h2>
+    <p class="b-desc">Erfolge, Ereignisse und Einblicke direkt aus unserer Gemeinschaft.</p>
+    <div class="news-item">
+      <div class="news-bar m"></div>
+      <div>
+        <div class="ni-title">GBF-Alumni bei der WM 2026 dabei</div>
+        <div class="ni-meta">08. Juni 2026 &nbsp;·&nbsp; Sport &amp; Erfolg</div>
+      </div>
+    </div>
+    <div class="news-item">
+      <div class="news-bar t"></div>
+      <div>
+        <div class="ni-title">Sponsorenlauf 2026 — Gemeinsam für einen guten Zweck</div>
+        <div class="ni-meta">12. Juni 2026 &nbsp;·&nbsp; Gemeinschaft</div>
+      </div>
+    </div>
+    <div class="news-item">
+      <div class="news-bar g"></div>
+      <div>
+        <div class="ni-title">Entlassfeier Abitur 2026 — Auf in die Zukunft!</div>
+        <div class="ni-meta">05. Juni 2026 &nbsp;·&nbsp; Veranstaltung</div>
+      </div>
+    </div>
+    <div class="news-item">
+      <div class="news-bar m"></div>
+      <div>
+        <div class="ni-title">Friedensprojekt: 25 Jahre Einsatz für eine bessere Welt</div>
+        <div class="ni-meta">01. Juni 2026 &nbsp;·&nbsp; Projekte</div>
+      </div>
+    </div>
+  </div>
+  <div class="b-side">
+    <div class="b-card b-ev reveal reveal-delay-1">
+      <div class="b-tag"><span class="b-tag-dot" style="background:var(--teal)"></span>Termine Juli</div>
+      <div class="ev-entry"><div class="ev-big">03</div><div class="ev-mo">Juli</div><div class="ev-name">Sportfest</div></div>
+      <div class="ev-entry"><div class="ev-big">11</div><div class="ev-mo">Juli</div><div class="ev-name">Elternsprechtag</div></div>
+      <div class="ev-entry"><div class="ev-big">25</div><div class="ev-mo">Juli</div><div class="ev-name">Letzter Schultag</div></div>
+    </div>
+    <div class="b-card b-aw reveal reveal-delay-2">
+      <div class="b-tag"><span class="b-tag-dot" style="background:#fff"></span>Auszeichnung</div>
+      <div class="aw-num">DFB</div>
+      <div class="aw-sub">Eliteschule des Fußballs<br>NRW-Sportschule seit 2009</div>
+    </div>
+    <div class="b-card b-sp reveal reveal-delay-3">
+      <div class="b-tag"><span class="b-tag-dot" style="background:rgba(0,0,0,0.35)"></span>Inklusion</div>
+      <div class="sp-h">Gemeinsam lernen —<br>gemeinsam wachsen.</div>
+      <div class="sp-s">Inklusive Schule mit Herz</div>
+    </div>
+  </div>
+</div>
+
+<!-- GALLERY -->
+<section id="gallery" style="padding-top:0;">
+  <div class="section-header reveal" style="padding:0 0 48px;">
+    <div>
+      <div class="section-kicker">Einblicke</div>
+      <h2 class="section-title">Leben an der GBF</h2>
+    </div>
+    <a href="#" class="section-link">Zur Galerie →</a>
+  </div>
+  <div class="gallery-grid reveal">
+    <div class="gcell tall gc-blue">
+      <div class="ginner">
+        <i class="ti ti-users gph-icon"></i>
+        <span class="gph-label">Gemeinschaft</span>
+      </div>
+      <div class="goverlay go-mag"><i class="ti ti-zoom-in go-icon"></i></div>
+    </div>
+    <div class="gcell gc-dark">
+      <div class="ginner"><i class="ti ti-book gph-icon"></i><span class="gph-label">Unterricht</span></div>
+      <div class="goverlay go-blue"><i class="ti ti-zoom-in go-icon"></i></div>
+    </div>
+    <div class="gcell gc-teal">
+      <div class="ginner"><i class="ti ti-heart gph-icon"></i><span class="gph-label">Inklusion</span></div>
+      <div class="goverlay go-mag"><i class="ti ti-zoom-in go-icon"></i></div>
+    </div>
+    <div class="gcell gc-mag">
+      <div class="ginner"><i class="ti ti-ball-football gph-icon"></i><span class="gph-label">Sport</span></div>
+      <div class="goverlay go-blue"><i class="ti ti-zoom-in go-icon"></i></div>
+    </div>
+    <div class="gcell gc-d2">
+      <div class="ginner"><i class="ti ti-music gph-icon"></i><span class="gph-label">Kultur</span></div>
+      <div class="goverlay go-mag"><i class="ti ti-zoom-in go-icon"></i></div>
+    </div>
+    <div class="gcell gc-green">
+      <div class="ginner"><i class="ti ti-leaf gph-icon"></i><span class="gph-label">Projekte</span></div>
+      <div class="goverlay go-teal"><i class="ti ti-zoom-in go-icon"></i></div>
+    </div>
+    <div class="gcell gc-blue" style="background:linear-gradient(145deg,#1c2460 0%,#0e1240 100%)">
+      <div class="ginner"><i class="ti ti-award gph-icon"></i><span class="gph-label">Erfolge</span></div>
+      <div class="goverlay go-green"><i class="ti ti-zoom-in go-icon"></i></div>
+    </div>
+  </div>
+</section>
+
+<!-- EVENTS TIMELINE -->
+<section id="events">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-kicker">Schulkalender</div>
+      <h2 class="section-title">Termine &amp; Ereignisse</h2>
+    </div>
+  </div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-content">
+        <div class="tl-date">03. Juli 2026</div>
+        <div class="tl-title">Sportfest</div>
+        <div class="tl-desc">Ein Tag voller Sport, Bewegung und Teamgeist auf der Schulanlage.</div>
+      </div>
+      <div class="tl-center"><div class="tl-dot d-mag"></div></div>
+      <div class="tl-empty"></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-empty"></div>
+      <div class="tl-center"><div class="tl-dot d-teal"></div></div>
+      <div class="tl-content" style="grid-column:3">
+        <div class="tl-date">11. Juli 2026</div>
+        <div class="tl-title">Elternsprechtag</div>
+        <div class="tl-desc">Persönliche Gespräche zwischen Eltern und Lehrkräften, 14–18 Uhr.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-content">
+        <div class="tl-date">18. Juli 2026</div>
+        <div class="tl-title">Tag der offenen Tür</div>
+        <div class="tl-desc">Alle Interessierten sind herzlich eingeladen, die GBF zu erleben.</div>
+      </div>
+      <div class="tl-center"><div class="tl-dot d-green"></div></div>
+      <div class="tl-empty"></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-empty"></div>
+      <div class="tl-center"><div class="tl-dot d-blue"></div></div>
+      <div class="tl-content" style="grid-column:3">
+        <div class="tl-date">25. Juli 2026</div>
+        <div class="tl-title">Letzter Schultag</div>
+        <div class="tl-desc">Sommerferien NRW 2026 beginnen. Schöne Ferien an alle!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AWARDS -->
+<section id="awards">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-kicker">Auszeichnungen</div>
+      <h2 class="section-title">Was uns auszeichnet</h2>
+    </div>
+  </div>
+  <div class="awards-scroll reveal">
+    <div class="award-card ac-blue">
+      <div class="award-icon iw"><i class="ti ti-ball-football"></i></div>
+      <div class="award-title">DFB-Eliteschule des Fußballs</div>
+      <div class="award-sub">Anerkannte Förderung sportlicher Talente seit 2009</div>
+    </div>
+    <div class="award-card ac-mag">
+      <div class="award-icon im"><i class="ti ti-run"></i></div>
+      <div class="award-title">NRW-Sportschule</div>
+      <div class="award-sub">Offizielle Sporteliteschule des Landes NRW</div>
+    </div>
+    <div class="award-card ac-teal">
+      <div class="award-icon it"><i class="ti ti-heart"></i></div>
+      <div class="award-title">Inklusive Schule</div>
+      <div class="award-sub">Gemeinsames Lernen und Wachsen seit Jahren</div>
+    </div>
+    <div class="award-card ac-green">
+      <div class="award-icon ig"><i class="ti ti-peace"></i></div>
+      <div class="award-title">25 Jahre Friedensarbeit</div>
+      <div class="award-sub">Engagierte Projekte für eine bessere Gesellschaft</div>
+    </div>
+    <div class="award-card ac-blue" style="background:rgba(40,53,130,0.12);border:1px solid rgba(40,53,130,0.3)">
+      <div class="award-icon" style="color:#8899ff"><i class="ti ti-school"></i></div>
+      <div class="award-title">Ganztagesschule</div>
+      <div class="award-sub">Umfassendes Nachmittagsprogramm für alle Jahrgänge</div>
+    </div>
+    <div class="award-card ac-mag">
+      <div class="award-icon im"><i class="ti ti-certificate"></i></div>
+      <div class="award-title">Alle Abschlüsse</div>
+      <div class="award-sub">Von HA10 über Fachabitur bis zum Abitur</div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTAL -->
+<section id="portal">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-kicker">Schnellzugriff</div>
+      <h2 class="section-title">Alles auf einen Klick</h2>
+    </div>
+  </div>
+  <div class="portal-grid">
+    <div class="portal-card pc-m reveal reveal-delay-1">
+      <div class="pc-icon"><i class="ti ti-school"></i></div>
+      <div>
+        <div class="pc-name">IServ</div>
+        <div class="pc-desc">Schulportal für Schülerinnen, Schüler und Lehrkräfte — E-Mail, Aufgaben, Dateien.</div>
+      </div>
+      <div class="pc-arrow">→</div>
+    </div>
+    <div class="portal-card pc-t reveal reveal-delay-2">
+      <div class="pc-icon"><i class="ti ti-calendar-event"></i></div>
+      <div>
+        <div class="pc-name">WebUntis</div>
+        <div class="pc-desc">Stundenplan, Vertretungen und Termine immer aktuell im Blick.</div>
+      </div>
+      <div class="pc-arrow">→</div>
+    </div>
+    <div class="portal-card pc-g reveal reveal-delay-3">
+      <div class="pc-icon"><i class="ti ti-file-text"></i></div>
+      <div>
+        <div class="pc-name">Formulare</div>
+        <div class="pc-desc">Alle wichtigen Dokumente und Anträge zum Download.</div>
+      </div>
+      <div class="pc-arrow">→</div>
+    </div>
+    <div class="portal-card pc-b reveal reveal-delay-4">
+      <div class="pc-icon"><i class="ti ti-mail"></i></div>
+      <div>
+        <div class="pc-name">Kontakt</div>
+        <div class="pc-desc">Sekretariat, Schulleitung und Ansprechpartner direkt erreichen.</div>
+      </div>
+      <div class="pc-arrow">→</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div id="cta">
+  <div class="cta-left reveal">
+    <div class="cta-kicker">Anmeldung 2026/2027</div>
+    <h2 class="cta-h">Jetzt Teil der GBF-Familie werden.</h2>
+    <button class="btn-primary magnetic" style="width:fit-content;background:#fff;color:var(--mag);">Zur Anmeldung →</button>
+  </div>
+  <div class="cta-right reveal reveal-delay-2">
+    <div class="cta-fact">
+      <div class="fact-num" id="cf1">0</div>
+      <div class="fact-label">Schülerinnen und Schüler lernen täglich gemeinsam</div>
+    </div>
+    <div class="cta-fact">
+      <div class="fact-num" id="cf2">0</div>
+      <div class="fact-label">Lehrerinnen und Lehrer begleiten euren Weg</div>
+    </div>
+    <div class="cta-fact">
+      <div class="fact-num" id="cf3">0</div>
+      <div class="fact-label">Jahre Erfahrung in exzellentem Unterricht</div>
+    </div>
+  </div>
+</div>
+
+<!-- BIG MARQUEE -->
+<div class="big-mq">
+  <div class="big-mq-inner">
+    <span class="big-mq-item">Gesamtschule</span>
+    <span class="big-mq-item">Berger Feld</span>
+    <span class="big-mq-item">Gelsenkirchen</span>
+    <span class="big-mq-item">Bildung</span>
+    <span class="big-mq-item">Sport</span>
+    <span class="big-mq-item">Inklusion</span>
+    <span class="big-mq-item">Zukunft</span>
+    <span class="big-mq-item">DFB Elite</span>
+    <span class="big-mq-item">Gesamtschule</span>
+    <span class="big-mq-item">Berger Feld</span>
+    <span class="big-mq-item">Gelsenkirchen</span>
+    <span class="big-mq-item">Bildung</span>
+    <span class="big-mq-item">Sport</span>
+    <span class="big-mq-item">Inklusion</span>
+    <span class="big-mq-item">Zukunft</span>
+    <span class="big-mq-item">DFB Elite</span>
+  </div>
+</div>
+
+<!-- COLORBAR -->
+<div class="colorbar">
+  <div class="cb cb1"></div>
+  <div class="cb cb2"></div>
+  <div class="cb cb3"></div>
+  <div class="cb cb4"></div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <div class="fbar"></div><div class="fbar"></div>
+    <div class="fbar"></div><div class="fbar"></div>
+    <span style="margin-left:12px;font-size:11px;font-weight:600;letter-spacing:0.05em;">GBF</span>
+  </div>
+  <div class="footer-center">
+    <div class="footer-copy">© 2026 Gesamtschule Berger Feld · Gelsenkirchen</div>
+  </div>
+  <div class="footer-links">
+    <a href="#">Impressum</a>
+    <a href="#">Datenschutz</a>
+    <a href="#">Sitemap</a>
+    <a href="#" style="color:var(--mag)">↑ Nach oben</a>
+  </div>
+</footer>
+
+<script>
+/* ── CURSOR ── */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animCursor() {
+  cur.style.left = mx + 'px'; cur.style.top = my + 'px';
+  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(animCursor);
+}
+animCursor();
+document.querySelectorAll('a,button,.stat-tile,.gcell,.award-card,.portal-card,.news-item').forEach(el => {
+  el.addEventListener('mouseenter', () => { cur.classList.add('hover'); ring.classList.add('hover'); });
+  el.addEventListener('mouseleave', () => { cur.classList.remove('hover'); ring.classList.remove('hover'); });
+});
+
+/* ── LOADER ── */
+let pct = 0;
+const pctEl = document.getElementById('loader-pct');
+const loaderInt = setInterval(() => {
+  pct = Math.min(pct + Math.random() * 14, 100);
+  if (pctEl) pctEl.textContent = Math.floor(pct);
+  if (pct >= 100) {
+    clearInterval(loaderInt);
+    setTimeout(() => {
+      document.getElementById('loader').classList.add('out');
+      setTimeout(() => document.getElementById('loader').remove(), 800);
+    }, 300);
+  }
+}, 80);
+
+/* ── SCROLL PROGRESS & NAV ── */
+const nav = document.getElementById('nav');
+const prog = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const s = window.scrollY;
+  const h = document.body.scrollHeight - window.innerHeight;
+  prog.style.width = (s / h * 100) + '%';
+  s > 60 ? nav.classList.add('scrolled') : nav.classList.remove('scrolled');
+});
+
+/* ── CANVAS PARTICLES ── */
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+const colors = ['#283582','#E5007E','#00AF9F','#93C01F'];
+
+function resize() {
+  canvas.width = canvas.offsetWidth * devicePixelRatio;
+  canvas.height = canvas.offsetHeight * devicePixelRatio;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resize();
+window.addEventListener('resize', resize);
+
+const particles = Array.from({length: 70}, () => ({
+  x: Math.random() * canvas.offsetWidth,
+  y: Math.random() * canvas.offsetHeight,
+  r: Math.random() * 3 + 0.5,
+  color: colors[Math.floor(Math.random() * 4)],
+  vx: (Math.random() - 0.5) * 0.4,
+  vy: (Math.random() - 0.5) * 0.4,
+  alpha: Math.random() * 0.6 + 0.1,
+}));
+
+let pmx = canvas.offsetWidth / 2, pmy = canvas.offsetHeight / 2;
+document.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  pmx = e.clientX - r.left; pmy = e.clientY - r.top;
+});
+
+function drawParticles() {
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => {
+    const dx = pmx - p.x, dy = pmy - p.y;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    if (d < 150) { p.x -= dx * 0.01; p.y -= dy * 0.01; }
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color + Math.floor(p.alpha * 255).toString(16).padStart(2,'0');
+    ctx.fill();
+  });
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i+1; j < particles.length; j++) {
+      const a = particles[i], b = particles[j];
+      const dx = a.x-b.x, dy = a.y-b.y;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      if (d < 100) {
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = a.color + Math.floor((1 - d/100) * 50).toString(16).padStart(2,'0');
+        ctx.lineWidth = 0.6;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+/* ── COUNTUP ── */
+function countUp(id, target, suffix, dur) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const start = performance.now();
+  function update(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(ease * target) + (suffix || '');
+    if (p < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+setTimeout(() => {
+  countUp('s-students', 1800, '+', 1800);
+  countUp('s-years', 25, ' J.', 1200);
+}, 2800);
+
+/* ── REVEAL ON SCROLL ── */
+const reveals = document.querySelectorAll('.reveal');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('v');
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+reveals.forEach(r => obs.observe(r));
+
+/* ── TIMELINE REVEAL ── */
+const tlItems = document.querySelectorAll('.tl-item');
+const tlObs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 150);
+      tlObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.2 });
+tlItems.forEach(t => tlObs.observe(t));
+
+/* ── CTA COUNTERS (trigger when visible) ── */
+const ctaObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      countUp('cf1', 1800, '+', 1600);
+      countUp('cf2', 120, '+', 1200);
+      countUp('cf3', 50, '+', 1000);
+      ctaObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+const ctaEl = document.getElementById('cta');
+if (ctaEl) ctaObs.observe(ctaEl);
+
+/* ── MAGNETIC BUTTONS ── */
+document.querySelectorAll('.magnetic').forEach(btn => {
+  btn.addEventListener('mousemove', e => {
+    const r = btn.getBoundingClientRect();
+    const x = (e.clientX - r.left - r.width/2) * 0.28;
+    const y = (e.clientY - r.top - r.height/2) * 0.28;
+    btn.style.transform = `translate(${x}px, ${y}px)`;
+  });
+  btn.addEventListener('mouseleave', () => {
+    btn.style.transform = '';
+    btn.style.transition = 'transform 0.5s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s';
+    setTimeout(() => btn.style.transition = '', 500);
+  });
+});
+
+/* ── GALLERY 3D TILT ── */
+document.querySelectorAll('.gcell').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    card.style.transform = `perspective(800px) rotateX(${-y*10}deg) rotateY(${x*10}deg) scale(1.05)`;
+    card.style.transition = 'transform 0.1s';
+    card.style.zIndex = '5';
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+    card.style.transition = 'transform 0.5s cubic-bezier(.34,1.56,.64,1)';
+    card.style.zIndex = '';
+  });
+});
+
+/* ── AWARDS SCROLL DRAG ── */
+const aScroll = document.querySelector('.awards-scroll');
+if (aScroll) {
+  let isDown = false, startX, scrollLeft;
+  aScroll.addEventListener('mousedown', e => {
+    isDown = true; startX = e.pageX - aScroll.offsetLeft; scrollLeft = aScroll.scrollLeft;
+  });
+  aScroll.addEventListener('mouseleave', () => isDown = false);
+  aScroll.addEventListener('mouseup', () => isDown = false);
+  aScroll.addEventListener('mousemove', e => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - aScroll.offsetLeft;
+    aScroll.scrollLeft = scrollLeft - (x - startX);
+  });
+}
+</script>
+</body>
+</html>
