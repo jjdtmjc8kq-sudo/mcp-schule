@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Present Perfect – Klasse 6 Englisch</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --bg2: #ede8dc;
+    --card: #faf7f2;
+    --primary: #3d6b4f;
+    --primary-dark: #274737;
+    --primary-light: #6e9e7e;
+    --primary-xlight: #bdd8c4;
+    --secondary: #c8874a;
+    --accent: #c8874a;
+    --danger: #c0453a;
+    --text: #1e2c1e;
+    --muted: #6b7a5e;
+    --radius: 20px;
+    --radius-sm: 12px;
+    --shadow: 0 2px 16px rgba(61,107,79,0.10);
+    --shadow-lg: 0 8px 40px rgba(61,107,79,0.14);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #1a2e1e 0%, #3d6b4f 40%, #527d63 75%, #6a9677 100%);
+    color: white;
+    padding: 3.5rem 1.5rem 5.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(200,180,160,.20) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(220,200,180,.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(100,160,120,.15) 0%, transparent 50%);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 60px;
+    background: var(--bg);
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+  .header-inner { position: relative; z-index: 1; }
+  .header-tag {
+    display: inline-block;
+    background: rgba(255,255,255,.15);
+    border: 1.5px solid rgba(255,255,255,.30);
+    border-radius: 30px;
+    padding: .35rem 1rem;
+    font-size: .8rem; font-weight: 700; letter-spacing: .5px;
+    margin-bottom: 1rem;
+    backdrop-filter: blur(8px);
+  }
+  header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2.4rem, 6vw, 3.8rem);
+    letter-spacing: 1px; line-height: 1.1;
+    margin-bottom: .5rem;
+    text-shadow: 0 2px 20px rgba(0,0,0,.2);
+  }
+  header p { font-size: 1.05rem; opacity: .85; margin-bottom: 1.5rem; }
+  .header-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+  .badge {
+    background: rgba(255,255,255,.12);
+    border: 1.5px solid rgba(255,255,255,.25);
+    border-radius: 20px; padding: .3rem .9rem;
+    font-size: .8rem; font-weight: 700;
+    backdrop-filter: blur(6px);
+    transition: background .2s, transform .2s;
+  }
+  .badge:hover { background: rgba(255,255,255,.22); transform: translateY(-2px); }
+
+  /* ── NAV ── */
+  nav {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem;
+    padding: 1rem;
+    background: rgba(245,240,232,.93);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 2px 20px rgba(61,107,79,.08), 0 1px 0 rgba(61,107,79,.06);
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid rgba(61,107,79,.08);
+  }
+  nav a {
+    text-decoration: none;
+    color: var(--primary);
+    border: 1.5px solid var(--primary-xlight);
+    border-radius: 30px; padding: .4rem 1rem;
+    font-weight: 700; font-size: .85rem;
+    transition: all .2s;
+  }
+  nav a:hover { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(61,107,79,.25); }
+
+  /* ── SECTIONS ── */
+  .section { max-width: 920px; margin: 0 auto 3.5rem; padding: 0 1.2rem; scroll-margin-top: 70px; }
+
+  .section-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.9rem; color: var(--primary);
+    margin-bottom: 1.4rem;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1; height: 2px;
+    background: linear-gradient(to right, var(--primary-xlight), transparent);
+    border-radius: 2px; margin-left: .4rem;
+  }
+  .section-title .icon { font-size: 1.5rem; }
+
+  /* ── ERKLÄRUNG ── */
+  .formula-box {
+    background: linear-gradient(135deg, #3d6b4f, #527d63);
+    border-radius: var(--radius);
+    padding: 1.6rem 2rem; margin-bottom: 1.4rem;
+    text-align: center; color: white;
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .formula-box::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(255,248,240,.15) 0%, transparent 60%);
+  }
+  .formula-box .formula {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem; letter-spacing: .5px; position: relative;
+  }
+  .formula-box small { display: block; opacity: .85; margin-top: .5rem; font-size: .92rem; position: relative; }
+
+  .explain-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem; margin-bottom: 1.2rem;
+  }
+  .explain-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 1.4rem;
+    box-shadow: var(--shadow);
+    border: 1.5px solid rgba(61,107,79,.09);
+    position: relative; overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .explain-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .explain-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  }
+  .explain-card h3 { font-size: 1rem; font-weight: 800; color: var(--primary); margin-bottom: .7rem; }
+  .explain-card p, .explain-card li { font-size: .94rem; line-height: 1.75; }
+  .explain-card ul { padding-left: 1.2rem; }
+
+  .example-row {
+    background: var(--card);
+    border-left: 4px solid var(--secondary);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: .9rem 1.1rem; margin: .5rem 0; font-size: .95rem;
+    box-shadow: 0 2px 8px rgba(200,135,74,.10);
+    transition: transform .15s;
+  }
+  .example-row:hover { transform: translateX(4px); }
+  .example-row strong { color: #8a4e1a; }
+
+  /* ── LERNKARTEN ── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.2rem; }
+  .flip-card { height: 165px; perspective: 900px; cursor: pointer; }
+  .flip-card-inner {
+    position: relative; width: 100%; height: 100%;
+    transition: transform .55s cubic-bezier(.4,0,.2,1);
+    transform-style: preserve-3d;
+  }
+  .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+  .flip-card-front, .flip-card-back {
+    position: absolute; inset: 0;
+    border-radius: var(--radius); backface-visibility: hidden;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 1.2rem; text-align: center;
+  }
+  .flip-card-front {
+    background: linear-gradient(135deg, #3d6b4f, #527d63);
+    color: white; box-shadow: 0 8px 30px rgba(61,107,79,.30);
+  }
+  .flip-card-front::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(255,248,240,.15) 0%, transparent 60%);
+    border-radius: var(--radius);
+  }
+  .flip-card-front .card-label { font-size: .7rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: .75; margin-bottom: .5rem; position: relative; }
+  .flip-card-front .card-main { font-family: 'Fredoka One', cursive; font-size: 1.2rem; position: relative; line-height: 1.4; }
+  .flip-card-back {
+    background: var(--card); color: var(--text);
+    transform: rotateY(180deg);
+    border: 2px solid var(--primary-xlight);
+    box-shadow: 0 8px 30px rgba(61,107,79,.10);
+  }
+  .flip-card-back .card-answer { font-size: 1rem; font-weight: 800; color: var(--primary); margin-bottom: .4rem; }
+  .flip-card-back .card-example { font-size: .82rem; color: var(--muted); font-style: italic; }
+  .flip-hint { text-align: center; color: var(--muted); font-size: .85rem; margin-top: .8rem; }
+
+  /* ── LÜCKENTEXT ── */
+  .gap-text {
+    background: var(--card); border-radius: var(--radius);
+    padding: 1.8rem; box-shadow: var(--shadow);
+    border: 1.5px solid rgba(61,107,79,.09);
+    line-height: 3; font-size: 1.05rem;
+  }
+  .gap-input {
+    border: none; border-bottom: 2.5px solid var(--primary);
+    background: #e0ede5; border-radius: 6px 6px 0 0;
+    padding: .25rem .7rem; font-family: 'Nunito', sans-serif;
+    font-size: 1rem; width: 145px; text-align: center;
+    outline: none; transition: background .2s, border-color .2s;
+  }
+  .gap-input:focus { background: #cce0d4; }
+  .gap-input.correct { background: #d4f0e4; border-bottom-color: var(--accent); color: #1a5c40; }
+  .gap-input.wrong { background: #f5ddd9; border-bottom-color: var(--danger); color: #7a2018; }
+
+  .word-bank {
+    display: flex; flex-wrap: wrap; gap: .5rem;
+    margin: 1rem 0; padding: 1rem 1.2rem;
+    background: #ede8dc; border-radius: var(--radius-sm);
+    border: 2px dashed #a8c8b4;
+  }
+  .word-chip {
+    background: linear-gradient(135deg, #3d6b4f, #527d63);
+    color: white; border-radius: 20px;
+    padding: .3rem .9rem; font-size: .85rem; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(61,107,79,.25);
+  }
+
+  .btn-row { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
+  .check-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: linear-gradient(135deg, var(--primary), #527d63);
+    color: white; border: none; border-radius: 30px;
+    padding: .7rem 1.8rem; font-family: 'Nunito', sans-serif;
+    font-size: 1rem; font-weight: 800; cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 4px 16px rgba(61,107,79,.30);
+  }
+  .check-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(61,107,79,.40); }
+  .check-btn:active { transform: translateY(0); }
+  .check-btn.grey { background: linear-gradient(135deg, #8a7d6a, #5a4e3c); box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+
+  .result-banner {
+    margin-top: 1rem; padding: 1rem 1.3rem;
+    border-radius: var(--radius-sm); font-weight: 700; font-size: 1rem;
+    display: none; animation: slideDown .3s ease;
+  }
+  .result-banner.show { display: block; }
+  .result-banner.good { background: #d4f0e4; color: #1a5c40; border: 2px solid var(--accent); }
+  .result-banner.bad { background: #f5ddd9; color: #7a2018; border: 2px solid var(--danger); }
+
+  /* ── QUIZ ── */
+  .quiz-progress { display: flex; gap: .4rem; margin-bottom: 1.5rem; }
+  .q-dot { flex: 1; height: 6px; border-radius: 3px; background: #d8d0c4; transition: background .4s; }
+  .q-dot.done { background: var(--primary-light); }
+  .q-dot.correct { background: var(--accent); }
+  .q-dot.wrong { background: var(--danger); }
+
+  .quiz-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 2rem; box-shadow: var(--shadow);
+    border: 1.5px solid rgba(61,107,79,.09); min-height: 300px;
+  }
+  .quiz-question { font-size: 1.1rem; font-weight: 800; margin-bottom: 1.3rem; color: var(--text); line-height: 1.5; }
+  .quiz-question em {
+    display: block; margin-top: .5rem;
+    background: #e0ede5; color: var(--primary);
+    border-radius: 8px; padding: .5rem .9rem;
+    font-style: normal; font-size: 1rem; font-weight: 700;
+  }
+  .quiz-options { display: grid; gap: .65rem; }
+  .quiz-opt {
+    background: #f0ebe0; border: 2px solid #d8d0c4;
+    border-radius: var(--radius-sm);
+    padding: .85rem 1.1rem; font-size: .97rem; font-weight: 600;
+    cursor: pointer; transition: all .18s; text-align: left;
+    font-family: 'Nunito', sans-serif;
+  }
+  .quiz-opt:hover:not(:disabled) { border-color: var(--primary-light); background: #e0ede5; transform: translateX(4px); }
+  .quiz-opt.selected-correct { border-color: var(--accent); background: #d4f0e4; color: #1a5c40; }
+  .quiz-opt.selected-wrong { border-color: var(--danger); background: #f5ddd9; color: #7a2018; }
+  .quiz-opt.reveal-correct { border-color: var(--accent); background: #d4f0e4; }
+  .quiz-opt:disabled { cursor: default; }
+
+  .quiz-feedback {
+    margin-top: 1rem; padding: .8rem 1.1rem;
+    border-radius: 10px; font-weight: 700; font-size: .97rem;
+    display: none; animation: slideDown .3s ease;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct { background: #d4f0e4; color: #1a5c40; }
+  .quiz-feedback.wrong { background: #f5ddd9; color: #7a2018; }
+
+  .quiz-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 1.3rem; }
+  .nav-btn {
+    background: var(--primary); color: white; border: none;
+    border-radius: 12px; padding: .6rem 1.5rem;
+    font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 700;
+    cursor: pointer; transition: all .2s;
+  }
+  .nav-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+  .nav-btn:disabled { background: var(--primary-xlight); cursor: default; transform: none; }
+
+  .score-display { text-align: center; padding: 2rem; }
+  .score-circle {
+    width: 110px; height: 110px;
+    background: linear-gradient(135deg, #3d6b4f, #527d63);
+    border-radius: 50%;
+    display: inline-flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: white; margin-bottom: 1rem;
+    box-shadow: 0 8px 30px rgba(61,107,79,.35);
+  }
+  .score-big { font-family: 'Fredoka One', cursive; font-size: 2.6rem; line-height: 1; }
+  .score-label { font-size: .7rem; opacity: .8; font-weight: 700; letter-spacing: 1px; }
+  .score-stars { font-size: 2rem; margin: .5rem 0; }
+  .score-msg { font-size: 1.05rem; color: var(--muted); margin-bottom: 1.3rem; }
+
+  /* ── STATIONEN ── */
+  .stations-tabs { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.3rem; }
+  .tab-btn {
+    background: var(--card); color: var(--primary);
+    border: 1.5px solid var(--primary-xlight);
+    border-radius: 30px; padding: .5rem 1.1rem;
+    font-family: 'Nunito', sans-serif; font-size: .88rem; font-weight: 700;
+    cursor: pointer; transition: all .2s;
+  }
+  .tab-btn:hover { background: #e0ede5; }
+  .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(61,107,79,.25); }
+  .station-content { display: none; }
+  .station-content.active { display: block; animation: fadeIn .3s ease; }
+
+  .station-box {
+    background: var(--card); border-radius: var(--radius);
+    padding: 1.8rem; box-shadow: var(--shadow);
+    border: 1.5px solid rgba(61,107,79,.09);
+  }
+  .station-box h3 { color: var(--primary); font-size: 1.15rem; margin-bottom: .9rem; font-weight: 800; }
+  .station-box p, .station-box li { font-size: .97rem; line-height: 1.8; }
+  .station-box ul, .station-box ol { padding-left: 1.4rem; }
+  .station-box ol li { margin-bottom: .4rem; }
+
+  .task-area {
+    background: #ede8dc; border-radius: var(--radius-sm);
+    padding: 1.2rem; margin-top: 1rem; border: 1.5px solid #d8cfc0;
+  }
+  .task-area textarea {
+    width: 100%; min-height: 95px;
+    border: 2px solid var(--primary-xlight); border-radius: 10px;
+    padding: .8rem; font-family: 'Nunito', sans-serif; font-size: .95rem;
+    resize: vertical; outline: none; margin-top: .8rem;
+    background: #faf7f2; transition: border-color .2s;
+  }
+  .task-area textarea:focus { border-color: var(--primary); }
+  .task-area details { margin-top: .6rem; }
+  .task-area details summary { cursor: pointer; font-weight: 800; color: var(--primary); padding: .5rem 0; user-select: none; }
+  .task-area details p { margin-top: .5rem; background: #e0ede5; border-radius: 8px; padding: .8rem 1rem; font-size: .93rem; line-height: 2; }
+
+  .tip-box {
+    background: #fdf3e3; border: 1.5px solid #e8c98a;
+    border-radius: 10px; padding: .9rem 1rem;
+    font-size: .85rem; margin-top: .8rem; color: #6b3d0f;
+  }
+  .checklist-box {
+    margin-top: 1rem; background: #fdf3e3;
+    border-radius: 10px; padding: 1rem;
+    font-size: .88rem; line-height: 2;
+    color: #5e3610; border: 1.5px solid #e8c98a;
+  }
+  .checklist-box strong { display: block; margin-bottom: .3rem; color: #7a4510; }
+
+  /* ── VIDEO ── */
+  .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.2rem; }
+  .video-card {
+    background: var(--card); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow);
+    border: 1.5px solid rgba(61,107,79,.09);
+    transition: transform .2s, box-shadow .2s;
+    text-decoration: none; color: inherit; display: block;
+  }
+  .video-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+  .video-thumb {
+    background: linear-gradient(135deg, #1a2e1e, #3d6b4f);
+    height: 130px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.8rem; position: relative; overflow: hidden;
+  }
+  .video-thumb::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 30% 40%, rgba(200,180,160,.20) 0%, transparent 70%);
+  }
+  .video-thumb::after {
+    content: '▶';
+    position: absolute;
+    width: 44px; height: 44px;
+    background: rgba(250,247,242,.94);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; color: var(--primary);
+    box-shadow: 0 4px 15px rgba(0,0,0,.20);
+    line-height: 44px; text-align: center; transition: transform .2s;
+  }
+  .video-card:hover .video-thumb::after { transform: scale(1.12); }
+  .video-info { padding: 1rem 1.1rem; }
+  .video-info h4 { font-size: .95rem; font-weight: 800; margin-bottom: .3rem; }
+  .video-info p { font-size: .82rem; color: var(--muted); }
+  .video-tag { display: inline-block; background: #e0ede5; color: var(--primary); border-radius: 20px; padding: .2rem .7rem; font-size: .72rem; font-weight: 700; margin-top: .4rem; }
+
+  /* ── FOOTER ── */
+  footer { text-align: center; padding: 2.5rem; color: var(--muted); font-size: .85rem; background: var(--card); border-top: 2px solid #e0d8cc; margin-top: 1rem; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+    nav a { font-size: .78rem; padding: .38rem .75rem; }
+    .quiz-card { padding: 1.3rem; }
+    .gap-input { width: 115px; }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes pop { 0%{transform:scale(.88);opacity:0} 100%{transform:scale(1);opacity:1} }
+  .pop { animation: pop .4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes slideDown { from{transform:translateY(-8px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-tag">🇬🇧 Englisch · Klasse 6 · Gesamtschule NRW</div>
+    <h1>Present Perfect</h1>
+    <p>Verstehen · Üben · Meistern</p>
+    <div class="header-badges">
+      <span class="badge">📖 Erklärung</span>
+      <span class="badge">🃏 Lernkarten</span>
+      <span class="badge">✍️ Lückentext</span>
+      <span class="badge">🧠 Quiz</span>
+      <span class="badge">🔬 Stationen</span>
+      <span class="badge">🎬 Videos</span>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <a href="#erklaerung">📖 Erklärung</a>
+  <a href="#lernkarten">🃏 Lernkarten</a>
+  <a href="#lueckentext">✍️ Lückentext</a>
+  <a href="#quiz">🧠 Quiz</a>
+  <a href="#stationen">🔬 Stationen</a>
+  <a href="#videos">🎬 Videos</a>
+</nav>
+
+<!-- ════════════════ 1. ERKLÄRUNG ════════════════ -->
+<div class="section" id="erklaerung" style="margin-top:3rem;">
+  <div class="section-title"><span class="icon">📖</span> Was ist das Present Perfect?</div>
+
+  <div class="formula-box">
+    <div class="formula">have / has &nbsp;+&nbsp; Past Participle (3. Form)</div>
+    <small>Beispiel: I <strong>have eaten</strong> pizza. &nbsp;|&nbsp; She <strong>has seen</strong> the film.</small>
+  </div>
+
+  <div class="explain-grid">
+    <div class="explain-card">
+      <h3>🤔 Wann benutze ich es?</h3>
+      <ul>
+        <li>Etwas ist <strong>gerade eben</strong> passiert</li>
+        <li>Eine Erfahrung <strong>irgendwann im Leben</strong></li>
+        <li>Etwas hat <strong>Auswirkung auf jetzt</strong></li>
+      </ul>
+    </div>
+    <div class="explain-card">
+      <h3>🔤 have / has</h3>
+      <ul>
+        <li>I / you / we / they → <strong>have</strong></li>
+        <li>he / she / it → <strong>has</strong></li>
+      </ul>
+    </div>
+    <div class="explain-card">
+      <h3>⚡ Signalwörter</h3>
+      <ul>
+        <li>just, already, yet</li>
+        <li>ever, never</li>
+        <li>since, for</li>
+      </ul>
+    </div>
+    <div class="explain-card">
+      <h3>📝 Verneinung &amp; Frage</h3>
+      <ul>
+        <li>I <strong>haven't</strong> eaten.</li>
+        <li>She <strong>hasn't</strong> come.</li>
+        <li><strong>Have</strong> you seen it? – Yes, I <strong>have</strong>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div>
+    <div class="example-row">✅ <strong>Erfahrung:</strong> I have been to London. (Ich war schon einmal in London.)</div>
+    <div class="example-row">✅ <strong>Gerade passiert:</strong> She has just finished her homework.</div>
+    <div class="example-row">✅ <strong>Auswirkung:</strong> He has lost his key. (Er kann jetzt nicht rein.)</div>
+    <div class="example-row">❌ <strong>Verneinung:</strong> We haven't seen that movie.</div>
+    <div class="example-row">❓ <strong>Frage:</strong> Have you ever eaten sushi?</div>
+  </div>
+</div>
+
+<!-- ════════════════ 2. LERNKARTEN ════════════════ -->
+<div class="section" id="lernkarten">
+  <div class="section-title"><span class="icon">🃏</span> Lernkarten – klick zum Umdrehen!</div>
+  <div class="cards-grid" id="cardsGrid"></div>
+  <p class="flip-hint">💡 Klick auf eine Karte, um die Lösung zu sehen.</p>
+</div>
+
+<!-- ════════════════ 3. LÜCKENTEXT ════════════════ -->
+<div class="section" id="lueckentext">
+  <div class="section-title"><span class="icon">✍️</span> Lückentext</div>
+  <p style="margin-bottom:.9rem;color:var(--muted);">Fülle die Lücken aus. Die Wörter aus der Wortbox helfen dir!</p>
+
+  <div class="word-bank">
+    <span class="word-chip">have visited</span>
+    <span class="word-chip">has eaten</span>
+    <span class="word-chip">Have</span>
+    <span class="word-chip">haven't finished</span>
+    <span class="word-chip">has just arrived</span>
+    <span class="word-chip">have never been</span>
+    <span class="word-chip">Has</span>
+    <span class="word-chip">have already done</span>
+  </div>
+
+  <div class="gap-text" id="gapText">
+    <p><strong>1.</strong> I <input class="gap-input" data-answer="have visited" placeholder="..."> Paris three times.</p>
+    <p><strong>2.</strong> She <input class="gap-input" data-answer="has eaten" placeholder="..."> all the cake!</p>
+    <p><strong>3.</strong> <input class="gap-input" data-answer="Have" placeholder="..."> you ever seen a whale?</p>
+    <p><strong>4.</strong> We <input class="gap-input" data-answer="havent finished" placeholder="..."> our project yet.</p>
+    <p><strong>5.</strong> The train <input class="gap-input" data-answer="has just arrived" placeholder="..."> at the station.</p>
+    <p><strong>6.</strong> They <input class="gap-input" data-answer="have never been" placeholder="..."> to Australia.</p>
+    <p><strong>7.</strong> <input class="gap-input" data-answer="Has" placeholder="..."> Tom called you today?</p>
+    <p><strong>8.</strong> I <input class="gap-input" data-answer="have already done" placeholder="..."> my homework.</p>
+  </div>
+
+  <div class="btn-row">
+    <button class="check-btn" onclick="checkGaps()">✔ Auswertung</button>
+    <button class="check-btn grey" onclick="resetGaps()">↺ Zurücksetzen</button>
+  </div>
+  <div class="result-banner" id="gapResult"></div>
+</div>
+
+<!-- ════════════════ 4. QUIZ ════════════════ -->
+<div class="section" id="quiz">
+  <div class="section-title"><span class="icon">🧠</span> Quiz – Teste dein Wissen!</div>
+  <div class="quiz-progress" id="quizProgress"></div>
+  <div class="quiz-card" id="quizCard"></div>
+</div>
+
+<!-- ════════════════ 5. STATIONEN ════════════════ -->
+<div class="section" id="stationen">
+  <div class="section-title"><span class="icon">🔬</span> Lernstationen</div>
+
+  <div class="stations-tabs">
+    <button class="tab-btn active" onclick="showStation('s1',this)">Station 1: Regelcheck</button>
+    <button class="tab-btn" onclick="showStation('s2',this)">Station 2: Sätze bilden</button>
+    <button class="tab-btn" onclick="showStation('s3',this)">Station 3: Übersetzung</button>
+    <button class="tab-btn" onclick="showStation('s4',this)">Station 4: Fehler finden</button>
+    <button class="tab-btn" onclick="showStation('s5',this)">Station 5: Kreativ</button>
+  </div>
+
+  <div class="station-content active" id="s1">
+    <div class="station-box">
+      <h3>🧩 Station 1: Regelcheck</h3>
+      <p>Lies die Sätze und entscheide: Present Perfect (<strong>PP</strong>) oder Simple Past (<strong>SP</strong>)?</p>
+      <div class="task-area">
+        <ol>
+          <li>I <em>have seen</em> this film before. → ___</li>
+          <li>She <em>called</em> me yesterday. → ___</li>
+          <li>We <em>have just eaten</em> lunch. → ___</li>
+          <li>He <em>went</em> to school at 8 o'clock. → ___</li>
+          <li>They <em>have never tried</em> sushi. → ___</li>
+          <li>I <em>lost</em> my phone last week. → ___</li>
+        </ol>
+        <div class="tip-box">💡 Tipp: Simple Past → genaue Zeitangabe (yesterday, last week, at 8). Present Perfect → keine genaue Zeit oder Auswirkung auf jetzt.</div>
+        <textarea placeholder="Schreib deine Antworten hier... z.B. 1) PP, 2) SP ..."></textarea>
+        <details><summary>Lösung anzeigen ▾</summary><p>1) PP &nbsp; 2) SP &nbsp; 3) PP &nbsp; 4) SP &nbsp; 5) PP &nbsp; 6) SP</p></details>
+      </div>
+    </div>
+  </div>
+
+  <div class="station-content" id="s2">
+    <div class="station-box">
+      <h3>✏️ Station 2: Sätze bilden</h3>
+      <p>Bilde aus den Satzteilen korrekte Present-Perfect-Sätze.</p>
+      <div class="task-area">
+        <ol>
+          <li>she / never / be / to France</li>
+          <li>you / already / finish / your homework / ?</li>
+          <li>I / just / eat / a sandwich</li>
+          <li>they / not / see / the new movie</li>
+          <li>he / lose / his keys</li>
+          <li>we / live / here / for three years</li>
+        </ol>
+        <textarea placeholder="Schreib deine Sätze hier..."></textarea>
+        <details><summary>Lösung anzeigen ▾</summary><p>1) She has never been to France.<br>2) Have you already finished your homework?<br>3) I have just eaten a sandwich.<br>4) They haven't seen the new movie.<br>5) He has lost his keys.<br>6) We have lived here for three years.</p></details>
+      </div>
+    </div>
+  </div>
+
+  <div class="station-content" id="s3">
+    <div class="station-box">
+      <h3>🌍 Station 3: Übersetzung</h3>
+      <p>Übersetze die deutschen Sätze ins Englische. Benutze das Present Perfect!</p>
+      <div class="task-area">
+        <ol>
+          <li>Ich habe gerade mein Zimmer aufgeräumt.</li>
+          <li>Hast du schon einmal einen Elefanten gesehen?</li>
+          <li>Wir haben die Hausaufgaben noch nicht gemacht.</li>
+          <li>Sie hat drei Bücher geschrieben.</li>
+          <li>Er hat noch nie Pizza gegessen.</li>
+          <li>Haben sie schon gefrühstückt?</li>
+        </ol>
+        <textarea placeholder="Deine Übersetzungen hier..."></textarea>
+        <details><summary>Lösung anzeigen ▾</summary><p>1) I have just tidied up my room.<br>2) Have you ever seen an elephant?<br>3) We haven't done the homework yet.<br>4) She has written three books.<br>5) He has never eaten pizza.<br>6) Have they had breakfast yet?</p></details>
+      </div>
+    </div>
+  </div>
+
+  <div class="station-content" id="s4">
+    <div class="station-box">
+      <h3>🔍 Station 4: Fehler finden</h3>
+      <p>In jedem Satz steckt <strong>ein Fehler</strong>. Finde und korrigiere ihn!</p>
+      <div class="task-area">
+        <ol>
+          <li>She have seen that film already.</li>
+          <li>I has never tried Japanese food.</li>
+          <li>Have you already finish your meal?</li>
+          <li>They have went to the supermarket.</li>
+          <li>He hasn't never been to Spain.</li>
+          <li>We has lived here since 2020.</li>
+        </ol>
+        <textarea placeholder="Schreib den korrekten Satz jeweils auf..."></textarea>
+        <details><summary>Lösung anzeigen ▾</summary><p>1) She <strong>has</strong> seen → „she" braucht has<br>2) I <strong>have</strong> never → „I" braucht have<br>3) Have you already <strong>finished</strong> → Partizip braucht -ed<br>4) They have <strong>gone</strong> → went ist Simple Past<br>5) He hasn't <strong>ever</strong> been → doppelte Verneinung vermeiden<br>6) We <strong>have</strong> lived → „we" braucht have</p></details>
+      </div>
+    </div>
+  </div>
+
+  <div class="station-content" id="s5">
+    <div class="station-box">
+      <h3>🎨 Station 5: Kreativ schreiben</h3>
+      <p>Schreib eine kurze Geschichte (5–8 Sätze) über eine Person, die gerade viele Dinge erlebt hat. Benutze mindestens <strong>5 Present-Perfect-Sätze</strong> mit verschiedenen Signalwörtern.</p>
+      <div class="task-area">
+        <div class="tip-box">💡 Idee: „Max hat einen verrückten Tag erlebt..." – Benutze: just, already, never, ever, yet, for, since</div>
+        <textarea style="min-height:150px;" placeholder="Deine kreative Geschichte..."></textarea>
+      </div>
+      <div class="checklist-box">
+        <strong>✅ Checkliste:</strong>
+        ☐ Mindestens 5 Present-Perfect-Sätze<br>
+        ☐ Verschiedene Signalwörter verwendet<br>
+        ☐ have und has korrekt eingesetzt<br>
+        ☐ Sinnvolle Handlung
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ 6. VIDEOS ════════════════ -->
+<div class="section" id="videos">
+  <div class="section-title"><span class="icon">🎬</span> Video-Tipps</div>
+  <p style="color:var(--muted);margin-bottom:1.2rem;">Hilfreiche YouTube-Suchen zum Present Perfect – einfach draufklicken!</p>
+
+  <div class="video-grid">
+    <a class="video-card" href="https://www.youtube.com/results?search_query=present+perfect+englisch+erkl%C3%A4rung+deutsch+klasse+6" target="_blank" rel="noopener">
+      <div class="video-thumb">📚</div>
+      <div class="video-info"><h4>Present Perfect – Einfache Erklärung</h4><p>Auf Deutsch erklärt für die Schule</p><span class="video-tag">YouTube-Suche</span></div>
+    </a>
+    <a class="video-card" href="https://www.youtube.com/results?search_query=present+perfect+have+has+exercises+english" target="_blank" rel="noopener">
+      <div class="video-thumb">✏️</div>
+      <div class="video-info"><h4>Übungen: have / has + Partizip</h4><p>Interaktive Übungsvideos</p><span class="video-tag">YouTube-Suche</span></div>
+    </a>
+    <a class="video-card" href="https://www.youtube.com/results?search_query=present+perfect+vs+simple+past+german+explanation" target="_blank" rel="noopener">
+      <div class="video-thumb">⚡</div>
+      <div class="video-info"><h4>Present Perfect vs. Simple Past</h4><p>Den Unterschied verstehen</p><span class="video-tag">YouTube-Suche</span></div>
+    </a>
+    <a class="video-card" href="https://www.youtube.com/results?search_query=present+perfect+signal+words+ever+never+just+already+yet" target="_blank" rel="noopener">
+      <div class="video-thumb">🔑</div>
+      <div class="video-info"><h4>Signalwörter: ever, never, just, already, yet</h4><p>Merkhilfen und Beispiele</p><span class="video-tag">YouTube-Suche</span></div>
+    </a>
+    <a class="video-card" href="https://www.youtube.com/results?search_query=present+perfect+song+for+kids+learn+english" target="_blank" rel="noopener">
+      <div class="video-thumb">🎵</div>
+      <div class="video-info"><h4>Present Perfect Song</h4><p>Grammatik mit Musik lernen</p><span class="video-tag">YouTube-Suche</span></div>
+    </a>
+    <a class="video-card" href="https://www.youtube.com/results?search_query=present+perfect+quiz+english+grammar" target="_blank" rel="noopener">
+      <div class="video-thumb">🧠</div>
+      <div class="video-info"><h4>Online-Quiz Videos</h4><p>Lernvideos mit Quizformat</p><span class="video-tag">YouTube-Suche</span></div>
+    </a>
+  </div>
+</div>
+
+<footer>
+  🎓 Present Perfect – Übungsseite für Klasse 6, Englisch, Gesamtschule NRW &nbsp;|&nbsp; Viel Erfolg beim Lernen! 💪
+</footer>
+
+<script>
+// ════════════ LERNKARTEN ════════════
+const cards = [
+  { front: "I / see / the film", back: "I have seen the film.", example: "Ich habe den Film gesehen." },
+  { front: "she / eat / breakfast", back: "She has eaten breakfast.", example: "Sie hat Frühstück gegessen." },
+  { front: "they / never / be / to Japan", back: "They have never been to Japan.", example: "Sie waren noch nie in Japan." },
+  { front: "he / just / finish / work", back: "He has just finished work.", example: "Er hat gerade die Arbeit fertig." },
+  { front: "we / live / here / for 5 years", back: "We have lived here for five years.", example: "Wir wohnen seit 5 Jahren hier." },
+  { front: "you / ever / try / sushi?", back: "Have you ever tried sushi?", example: "Hast du jemals Sushi probiert?" },
+  { front: "I / not / do / my homework / yet", back: "I haven't done my homework yet.", example: "Hausaufgaben noch nicht gemacht." },
+  { front: "the train / arrive", back: "The train has arrived.", example: "Der Zug ist angekommen." },
+];
+
+const grid = document.getElementById('cardsGrid');
+cards.forEach(c => {
+  grid.innerHTML += `<div class="flip-card" onclick="this.classList.toggle('flipped')">
+    <div class="flip-card-inner">
+      <div class="flip-card-front">
+        <div class="card-label">Bilde den Satz</div>
+        <div class="card-main">${c.front}</div>
+      </div>
+      <div class="flip-card-back">
+        <div class="card-answer">${c.back}</div>
+        <div class="card-example">${c.example}</div>
+      </div>
+    </div>
+  </div>`;
+});
+
+// ════════════ LÜCKENTEXT ════════════
+function checkGaps() {
+  const inputs = document.querySelectorAll('.gap-input');
+  let correct = 0;
+  inputs.forEach(inp => {
+    const norm = s => s.trim().toLowerCase().replace(/[''']/g, '');
+    if (norm(inp.value) === norm(inp.dataset.answer)) {
+      inp.classList.add('correct'); inp.classList.remove('wrong'); correct++;
+    } else {
+      inp.classList.add('wrong'); inp.classList.remove('correct');
+    }
+  });
+  const banner = document.getElementById('gapResult');
+  banner.className = 'result-banner show ' + (correct >= 6 ? 'good' : 'bad');
+  banner.textContent = correct === inputs.length
+    ? `🎉 Super! Alle ${inputs.length} Antworten richtig!`
+    : `Du hast ${correct} von ${inputs.length} Lücken richtig. Schau nochmal hin! 💪`;
+}
+
+function resetGaps() {
+  document.querySelectorAll('.gap-input').forEach(i => { i.value=''; i.classList.remove('correct','wrong'); });
+  document.getElementById('gapResult').className = 'result-banner';
+}
+
+// ════════════ QUIZ ════════════
+const questions = [
+  { q:"Welche Form ist korrekt?", code:'She ___ (eat) all the cookies.',
+    opts:["She eated all the cookies.","She has eaten all the cookies.","She have eaten all the cookies.","She ate all the cookies yesterday."],
+    correct:1, fb:"„She" braucht „has" + Partizip (eaten). Das ist das Past Participle von „eat"." },
+  { q:"Was bedeutet dieses Signalwort?", code:'Have you <strong>ever</strong> been to London?',
+    opts:["gerade eben","irgendwann (in deinem Leben)","noch nicht","bereits"],
+    correct:1, fb:"„ever" fragt nach einer Erfahrung irgendwann im Leben – typisch für das Present Perfect!" },
+  { q:"Welcher Satz steht im Present Perfect?", code:'',
+    opts:["I went to school yesterday.","She is going to the gym.","They have finished their project.","We will travel to Spain."],
+    correct:2, fb:"„have finished" = have + Past Participle = Present Perfect. ✅" },
+  { q:"Vervollständige die Verneinung:", code:'I ___ my homework yet.',
+    opts:["haven't done","didn't done","don't have done","not have done"],
+    correct:0, fb:"Verneinung im Present Perfect: have/has + not + Partizip. „haven't done" ist korrekt!" },
+  { q:"Welches Signalwort passt NICHT zum Present Perfect?", code:'',
+    opts:["just","already","yesterday","never"],
+    correct:2, fb:"„yesterday" ist eine genaue Zeitangabe → Simple Past! Bei Present Perfect keine genaue Zeit." },
+  { q:"Frage im Present Perfect – was ist richtig?", code:'___ she ever seen a dolphin?',
+    opts:["Did","Does","Has","Have"],
+    correct:2, fb:"„she" → Has she ever seen...? Bei he/she/it immer „Has" im Present Perfect!" }
+];
+
+let current=0, score=0, answered=[];
+
+function renderQuiz() {
+  const prog = document.getElementById('quizProgress');
+  prog.innerHTML = questions.map((_,i) => {
+    let cls='q-dot';
+    if (answered[i]===true) cls+=' correct';
+    else if (answered[i]===false) cls+=' wrong';
+    else if (i===current) cls+=' done';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  if (current >= questions.length) { showScore(); return; }
+  const q = questions[current];
+  const optHtml = q.opts.map((o,i) => `<button class="quiz-opt" onclick="selectOpt(${i})">${o}</button>`).join('');
+  document.getElementById('quizCard').innerHTML = `
+    <div class="quiz-question">${current+1}/${questions.length} – ${q.q}${q.code ? `<em>${q.code}</em>` : ''}</div>
+    <div class="quiz-options">${optHtml}</div>
+    <div class="quiz-feedback" id="qFeedback"></div>
+    <div class="quiz-nav">
+      <span style="font-size:.9rem;color:var(--muted);">Punkte: ${score}</span>
+      <button class="nav-btn" id="nextBtn" disabled onclick="nextQuestion()">Weiter →</button>
+    </div>`;
+}
+
+function selectOpt(idx) {
+  const q = questions[current];
+  document.querySelectorAll('.quiz-opt').forEach(o => o.disabled=true);
+  const fb = document.getElementById('qFeedback');
+  const opts = document.querySelectorAll('.quiz-opt');
+  if (idx === q.correct) {
+    opts[idx].classList.add('selected-correct');
+    fb.className='quiz-feedback show correct'; fb.textContent='🎉 Richtig! '+q.fb;
+    score++; answered[current]=true;
+  } else {
+    opts[idx].classList.add('selected-wrong');
+    opts[q.correct].classList.add('reveal-correct');
+    fb.className='quiz-feedback show wrong'; fb.textContent='❌ Leider falsch. '+q.fb;
+    answered[current]=false;
+  }
+  document.getElementById('nextBtn').disabled=false;
+}
+
+function nextQuestion() { current++; renderQuiz(); }
+
+function showScore() {
+  const stars = score>=5?'⭐⭐⭐':score>=3?'⭐⭐':'⭐';
+  const msg = score===6?'Perfekt! Du bist ein Present-Perfect-Profi! 🏆'
+            : score>=4?'Sehr gut! Du hast das Thema gut verstanden! 💪'
+            : score>=2?'Nicht schlecht! Noch ein bisschen üben! 📚'
+            : 'Weitermachen! Schau dir die Erklärung nochmal an. 💡';
+  document.getElementById('quizCard').innerHTML = `
+    <div class="score-display pop">
+      <div class="score-circle">
+        <div class="score-big">${score}/6</div>
+        <div class="score-label">PUNKTE</div>
+      </div>
+      <div class="score-stars">${stars}</div>
+      <div class="score-msg">${msg}</div>
+      <button class="check-btn" onclick="restartQuiz()">🔄 Nochmal versuchen</button>
+    </div>`;
+}
+
+function restartQuiz() { current=0; score=0; answered=[]; renderQuiz(); }
+
+// ════════════ STATIONEN ════════════
+function showStation(id, btn) {
+  document.querySelectorAll('.station-content').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+renderQuiz();
+</script>
+</body>
+</html>
