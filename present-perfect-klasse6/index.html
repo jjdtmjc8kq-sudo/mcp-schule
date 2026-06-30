@@ -447,11 +447,110 @@
   .pop { animation: pop .4s cubic-bezier(.34,1.56,.64,1); }
   @keyframes slideDown { from{transform:translateY(-8px);opacity:0} to{transform:translateY(0);opacity:1} }
   @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── SCROLL ENTRANCE ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity .6s ease, transform .6s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: .08s; }
+  .reveal-delay-2 { transition-delay: .16s; }
+  .reveal-delay-3 { transition-delay: .24s; }
+  .reveal-delay-4 { transition-delay: .32s; }
+
+  /* ── NAV ACTIVE ── */
+  nav a.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 2px 10px rgba(61,107,79,.25);
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: var(--primary-xlight);
+    color: var(--primary-dark);
+    border-radius: 20px;
+    padding: .25rem .8rem;
+    font-size: .75rem;
+    font-weight: 800;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    margin-bottom: .6rem;
+  }
+
+  /* ── HEADER LEAF DECORATIONS ── */
+  .leaf-deco {
+    position: absolute;
+    opacity: .18;
+    pointer-events: none;
+  }
+
+  /* ── BACKGROUND TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='52' height='52' viewBox='0 0 52 52' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='26' cy='26' r='1.2' fill='%233d6b4f' fill-opacity='0.07'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+  body > * { position: relative; z-index: 1; }
+
+  /* ── FORMULA TAG ── */
+  .formula-tag {
+    display: inline-block;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 6px;
+    padding: .15rem .5rem;
+    font-size: .8rem;
+    font-family: monospace;
+    letter-spacing: .5px;
+    margin: 0 .1rem;
+  }
+
+  /* ── SIGNALWORT CHIPS in Erklärung ── */
+  .signal-chip {
+    display: inline-block;
+    background: var(--primary-xlight);
+    color: var(--primary-dark);
+    border-radius: 8px;
+    padding: .15rem .55rem;
+    font-size: .85rem;
+    font-weight: 700;
+    margin: .1rem .1rem;
+  }
+
+  /* ── FORTSCHRITTS-BADGE ── */
+  .score-ring-wrap { display: flex; justify-content: center; }
 </style>
 </head>
 <body>
 
 <header>
+  <!-- Botanische Blatt-Dekorationen -->
+  <svg class="leaf-deco" style="top:-10px;left:-30px;width:220px;" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <path d="M40,180 C40,80 160,20 190,10 C160,60 120,100 40,180Z" fill="white"/>
+    <path d="M60,170 C70,120 130,70 160,50" stroke="white" stroke-width="1.5" fill="none" opacity=".5"/>
+    <path d="M80,155 C90,130 110,110 130,95" stroke="white" stroke-width="1" fill="none" opacity=".4"/>
+  </svg>
+  <svg class="leaf-deco" style="bottom:20px;right:-20px;width:180px;transform:scaleX(-1) rotate(-20deg);" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <path d="M40,180 C40,80 160,20 190,10 C160,60 120,100 40,180Z" fill="white"/>
+    <path d="M60,170 C70,120 130,70 160,50" stroke="white" stroke-width="1.5" fill="none" opacity=".5"/>
+  </svg>
+  <svg class="leaf-deco" style="top:20px;right:15%;width:100px;opacity:.12;" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20,90 C20,40 80,10 95,5 C80,30 60,50 20,90Z" fill="white"/>
+  </svg>
+  <svg class="leaf-deco" style="bottom:40px;left:20%;width:80px;opacity:.10;transform:rotate(40deg);" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20,90 C20,40 80,10 95,5 C80,30 60,50 20,90Z" fill="white"/>
+  </svg>
+
   <div class="header-inner">
     <div class="header-tag">🇬🇧 Englisch · Klasse 6 · Gesamtschule NRW</div>
     <h1>Present Perfect</h1>
@@ -477,7 +576,8 @@
 </nav>
 
 <!-- ════════════════ 1. ERKLÄRUNG ════════════════ -->
-<div class="section" id="erklaerung" style="margin-top:3rem;">
+<div class="section reveal" id="erklaerung" style="margin-top:3rem;">
+  <div class="section-label">🌿 Grundlagen</div>
   <div class="section-title"><span class="icon">📖</span> Was ist das Present Perfect?</div>
 
   <div class="formula-box">
@@ -529,14 +629,16 @@
 </div>
 
 <!-- ════════════════ 2. LERNKARTEN ════════════════ -->
-<div class="section" id="lernkarten">
+<div class="section reveal" id="lernkarten">
+  <div class="section-label">🃏 Üben</div>
   <div class="section-title"><span class="icon">🃏</span> Lernkarten – klick zum Umdrehen!</div>
   <div class="cards-grid" id="cardsGrid"></div>
   <p class="flip-hint">💡 Klick auf eine Karte, um die Lösung zu sehen.</p>
 </div>
 
 <!-- ════════════════ 3. LÜCKENTEXT ════════════════ -->
-<div class="section" id="lueckentext">
+<div class="section reveal" id="lueckentext">
+  <div class="section-label">✍️ Üben</div>
   <div class="section-title"><span class="icon">✍️</span> Lückentext</div>
   <p style="margin-bottom:.9rem;color:var(--muted);">Fülle die Lücken aus. Die Wörter aus der Wortbox helfen dir!</p>
 
@@ -570,14 +672,16 @@
 </div>
 
 <!-- ════════════════ 4. QUIZ ════════════════ -->
-<div class="section" id="quiz">
+<div class="section reveal" id="quiz">
+  <div class="section-label">🧠 Testen</div>
   <div class="section-title"><span class="icon">🧠</span> Quiz – Teste dein Wissen!</div>
   <div class="quiz-progress" id="quizProgress"></div>
   <div class="quiz-card" id="quizCard"></div>
 </div>
 
 <!-- ════════════════ 5. STATIONEN ════════════════ -->
-<div class="section" id="stationen">
+<div class="section reveal" id="stationen">
+  <div class="section-label">🔬 Vertiefen</div>
   <div class="section-title"><span class="icon">🔬</span> Lernstationen</div>
 
   <div class="stations-tabs">
@@ -685,7 +789,8 @@
 </div>
 
 <!-- ════════════════ 6. VIDEOS ════════════════ -->
-<div class="section" id="videos">
+<div class="section reveal" id="videos">
+  <div class="section-label">🎬 Mehr lernen</div>
   <div class="section-title"><span class="icon">🎬</span> Video-Tipps</div>
   <p style="color:var(--muted);margin-bottom:1.2rem;">Hilfreiche YouTube-Suchen zum Present Perfect – einfach draufklicken!</p>
 
@@ -870,6 +975,28 @@ function showStation(id, btn) {
 }
 
 renderQuiz();
+
+// ════════════ SCROLL ENTRANCE ════════════
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ════════════ SCROLL SPY NAV ════════════
+const sections = ['erklaerung','lernkarten','lueckentext','quiz','stationen','videos'];
+const navLinks = {};
+sections.forEach(id => { navLinks[id] = document.querySelector(`nav a[href="#${id}"]`); });
+
+const spyObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sections.forEach(id => navLinks[id] && navLinks[id].classList.remove('active'));
+      const id = e.target.id;
+      if (navLinks[id]) navLinks[id].classList.add('active');
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px' });
+sections.forEach(id => { const el = document.getElementById(id); if (el) spyObserver.observe(el); });
 </script>
 </body>
 </html>
