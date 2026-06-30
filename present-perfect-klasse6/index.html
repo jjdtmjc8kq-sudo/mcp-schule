@@ -449,88 +449,48 @@
   @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
   /* ── CURSOR TRAIL ── */
-  #cursor-trail { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
-  .cursor-particle {
+  .cp {
     position: fixed;
-    width: 7px; height: 7px;
     border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
     transform: translate(-50%, -50%);
-    pointer-events: none;
-    opacity: 0;
   }
-  .cursor-particle.star {
-    background: #6e9e7e;
-    box-shadow: 0 0 6px #3d6b4f, 0 0 14px rgba(61,107,79,.5);
-    animation: trail-star .75s ease-out forwards;
-  }
-  .cursor-particle.ember {
-    width: 5px; height: 5px;
-    background: #c8874a;
-    box-shadow: 0 0 8px #c8874a;
-    animation: trail-ember .65s ease-out forwards;
-  }
-  .cursor-particle.leaf {
-    width: 8px; height: 8px;
-    background: #3d6b4f;
-    box-shadow: 0 0 6px rgba(61,107,79,.6);
-    border-radius: 50% 0 50% 0;
-    animation: trail-leaf .9s ease-out forwards;
-  }
-  @keyframes trail-star {
-    0%   { opacity: .9; transform: translate(-50%,-50%) scale(1); }
-    100% { opacity: 0;  transform: translate(-50%,-200%) scale(.2) rotate(120deg); }
-  }
-  @keyframes trail-ember {
+  @keyframes cp-star {
     0%   { opacity: 1;  transform: translate(-50%,-50%) scale(1); }
-    100% { opacity: 0;  transform: translate(calc(-50% + 12px),-220%) scale(.3); }
+    100% { opacity: 0;  transform: translate(-50%, calc(-50% - 40px)) scale(.1) rotate(180deg); }
   }
-  @keyframes trail-leaf {
-    0%   { opacity: .8;  transform: translate(-50%,-50%) scale(1) rotate(0deg); }
-    100% { opacity: 0;   transform: translate(calc(-50% - 15px),-180%) scale(.4) rotate(-80deg); }
+  @keyframes cp-ember {
+    0%   { opacity: 1;  transform: translate(-50%,-50%) scale(1); }
+    100% { opacity: 0;  transform: translate(calc(-50% + 20px), calc(-50% - 50px)) scale(.2); }
   }
-
-  /* ── PARTICLE LAYER (header) ── */
-  #particle-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
-  .header-particle {
-    position: absolute;
-    top: 105%;
-    border-radius: 50%;
-    opacity: 0;
-    animation: p-rise linear infinite;
-  }
-  .header-particle.kind-dust {
-    width: 4px; height: 4px;
-    background: rgba(255,255,255,.7);
-    box-shadow: 0 0 5px rgba(255,255,255,.5);
-  }
-  .header-particle.kind-ember {
-    width: 5px; height: 5px;
-    background: #ffd080;
-    box-shadow: 0 0 8px #ffd080;
-  }
-  .header-particle.kind-leaf {
-    width: 7px; height: 7px;
-    background: rgba(180,230,190,.7);
-    border-radius: 50% 0 50% 0;
-  }
-  @keyframes p-rise {
-    0%   { opacity: 0; top: 105%; }
-    10%  { opacity: .7; }
-    90%  { opacity: .3; }
-    100% { opacity: 0;  top: -8%; }
+  @keyframes cp-leaf {
+    0%   { opacity: .9; transform: translate(-50%,-50%) scale(1) rotate(0deg); }
+    100% { opacity: 0;  transform: translate(calc(-50% - 25px), calc(-50% - 35px)) scale(.3) rotate(-100deg); }
   }
 
-  /* ── MAGIC BURST (richtige Antwort) ── */
-  .magic-burst {
+  /* ── AMBIENT PARTICLES (body, fixed) ── */
+  .ap {
     position: fixed;
+    border-radius: 50%;
     pointer-events: none;
-    z-index: 9998;
+    z-index: 1;
+    opacity: 0;
   }
+  @keyframes ap-rise {
+    0%   { opacity: 0;   transform: translateY(0); }
+    15%  { opacity: .85; }
+    85%  { opacity: .5;  }
+    100% { opacity: 0;   transform: translateY(-100vh); }
+  }
+
+  /* ── MAGIC BURST ── */
+  .magic-burst { position: fixed; pointer-events: none; z-index: 9998; }
   .burst-particle {
     position: absolute;
-    width: 6px; height: 6px;
+    width: 8px; height: 8px;
     border-radius: 50%;
-    animation: burst .6s ease-out forwards;
+    animation: burst .7s ease-out forwards;
   }
   @keyframes burst {
     0%   { opacity: 1; transform: translate(0,0) scale(1); }
@@ -623,9 +583,6 @@
 <body>
 
 <header>
-  <!-- Schwebende Partikel -->
-  <div id="particle-layer"></div>
-
   <!-- Botanische Blatt-Dekorationen -->
   <svg class="leaf-deco" style="top:-10px;left:-30px;width:220px;" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
     <path d="M40,180 C40,80 160,20 190,10 C160,60 120,100 40,180Z" fill="white"/>
@@ -1074,70 +1031,85 @@ function showStation(id, btn) {
 
 renderQuiz();
 
-// ════════════ PARTIKEL LAYER ════════════
+// ════════════ AMBIENT PARTICLES (fixiert, ganzer Screen) ════════════
 (function() {
-  const layer = document.getElementById('particle-layer');
-  if (!layer) return;
-  const kinds = ['dust','dust','dust','ember','ember','leaf'];
-  const count = 28;
-  for (let i = 0; i < count; i++) {
-    const el = document.createElement('span');
-    const kind = kinds[Math.floor(Math.random() * kinds.length)];
-    el.className = `header-particle kind-${kind}`;
-    el.style.left = (Math.random() * 100) + '%';
-    el.style.animationDelay = (Math.random() * 7) + 's';
-    el.style.animationDuration = (4 + Math.random() * 5) + 's';
-    el.style.transform = `scale(${0.5 + Math.random() * 0.9})`;
-    layer.appendChild(el);
-  }
+  const configs = [
+    { w:6,  h:6,  bg:'rgba(255,255,255,0.85)', shadow:'0 0 8px rgba(255,255,255,0.9)',  count:10 },
+    { w:7,  h:7,  bg:'#ffd080',                shadow:'0 0 10px #ffd080',               count:8  },
+    { w:8,  h:8,  bg:'#6e9e7e',                shadow:'0 0 10px rgba(61,107,79,0.7)',   count:7  },
+    { w:5,  h:5,  bg:'#c8874a',                shadow:'0 0 8px rgba(200,135,74,0.8)',   count:5  },
+  ];
+  configs.forEach(cfg => {
+    for (let i = 0; i < cfg.count; i++) {
+      const el = document.createElement('div');
+      el.className = 'ap';
+      el.style.width  = cfg.w + 'px';
+      el.style.height = cfg.h + 'px';
+      el.style.background  = cfg.bg;
+      el.style.boxShadow   = cfg.shadow;
+      el.style.left        = (Math.random() * 98) + 'vw';
+      el.style.top         = (Math.random() * 100) + 'vh';
+      const dur = (6 + Math.random() * 8).toFixed(1);
+      const del = (Math.random() * 8).toFixed(1);
+      el.style.animation   = `ap-rise ${dur}s ${del}s ease-in-out infinite`;
+      document.body.appendChild(el);
+    }
+  });
 })();
 
 // ════════════ CURSOR TRAIL ════════════
 (function() {
-  const container = document.createElement('div');
-  container.id = 'cursor-trail';
-  document.body.appendChild(container);
-
-  const KINDS = ['star','star','star','ember','leaf'];
   let lastSpawn = 0;
-  const INTERVAL = 55;
-
+  const INTERVAL = 45;
+  const KINDS = [
+    { anim:'cp-star .8s ease-out forwards',  w:10, h:10, bg:'#6e9e7e',  shadow:'0 0 8px #3d6b4f, 0 0 20px rgba(61,107,79,.4)' },
+    { anim:'cp-star .8s ease-out forwards',  w:8,  h:8,  bg:'#bdd8c4',  shadow:'0 0 6px #6e9e7e' },
+    { anim:'cp-ember .7s ease-out forwards', w:9,  h:9,  bg:'#ffd080',  shadow:'0 0 10px #c8874a, 0 0 20px rgba(200,135,74,.5)' },
+    { anim:'cp-ember .6s ease-out forwards', w:7,  h:7,  bg:'#c8874a',  shadow:'0 0 8px #c8874a' },
+    { anim:'cp-leaf .9s ease-out forwards',  w:11, h:11, bg:'#3d6b4f',  shadow:'0 0 8px rgba(61,107,79,.7)', radius:'50% 0 50% 0' },
+  ];
   document.addEventListener('mousemove', (e) => {
     const now = performance.now();
     if (now - lastSpawn < INTERVAL) return;
     lastSpawn = now;
-
-    const el = document.createElement('span');
-    el.className = 'cursor-particle ' + KINDS[Math.floor(Math.random() * KINDS.length)];
-    el.style.left = e.clientX + 'px';
-    el.style.top  = e.clientY + 'px';
-    container.appendChild(el);
+    const k = KINDS[Math.floor(Math.random() * KINDS.length)];
+    const el = document.createElement('div');
+    el.className = 'cp';
+    el.style.width       = k.w + 'px';
+    el.style.height      = k.h + 'px';
+    el.style.background  = k.bg;
+    el.style.boxShadow   = k.shadow;
+    el.style.left        = e.clientX + 'px';
+    el.style.top         = e.clientY + 'px';
+    el.style.animation   = k.anim;
+    if (k.radius) el.style.borderRadius = k.radius;
+    document.body.appendChild(el);
     el.addEventListener('animationend', () => el.remove(), { once: true });
   });
 })();
 
-// ════════════ MAGIC BURST (richtige Antwort) ════════════
+// ════════════ MAGIC BURST ════════════
 function spawnBurst(x, y) {
   const wrap = document.createElement('div');
   wrap.className = 'magic-burst';
   wrap.style.left = x + 'px';
   wrap.style.top  = y + 'px';
   document.body.appendChild(wrap);
-  const colors = ['#3d6b4f','#6e9e7e','#c8874a','#bdd8c4','#ffd080'];
-  const count = 14;
-  for (let i = 0; i < count; i++) {
+  const colors = ['#3d6b4f','#6e9e7e','#c8874a','#ffd080','#bdd8c4','#fff'];
+  for (let i = 0; i < 18; i++) {
     const p = document.createElement('span');
     p.className = 'burst-particle';
-    const angle = (i / count) * 360;
-    const dist  = 30 + Math.random() * 40;
+    const angle = (i / 18) * 360;
+    const dist  = 35 + Math.random() * 55;
     const rad   = angle * Math.PI / 180;
-    p.style.setProperty('--bx', Math.cos(rad) * dist + 'px');
-    p.style.setProperty('--by', Math.sin(rad) * dist + 'px');
-    p.style.background = colors[i % colors.length];
-    p.style.animationDelay = (Math.random() * 0.1) + 's';
+    p.style.setProperty('--bx', (Math.cos(rad) * dist) + 'px');
+    p.style.setProperty('--by', (Math.sin(rad) * dist) + 'px');
+    p.style.background     = colors[i % colors.length];
+    p.style.boxShadow      = `0 0 6px ${colors[i % colors.length]}`;
+    p.style.animationDelay = (Math.random() * .12) + 's';
     wrap.appendChild(p);
   }
-  setTimeout(() => wrap.remove(), 800);
+  setTimeout(() => wrap.remove(), 900);
 }
 
 // ════════════ SCROLL ENTRANCE ════════════
