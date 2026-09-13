@@ -6,23 +6,32 @@
 
    Aendert sich das Spiel, muss VERSION hochgezaehlt werden. Sonst haelt der
    Cache die alte Fassung fest und niemand sieht die Aenderung. */
-const VERSION = 'bfa-v1';
+const VERSION = 'bfa-v2';
+const PRAEFIX = 'bfa-';
 const DATEIEN = ['./', './index.html'];
 
 self.addEventListener('install', e => {
-  /* Einzeln laden statt addAll: faellt eine Adresse aus, scheitert sonst die
-     ganze Installation und der Worker uebernimmt nie. */
+  /* addAll statt einzeln mit verschlucktem Fehler: Bricht das WLAN mitten in
+     der Installation ab, scheitert die Installation absichtlich. Der alte
+     Worker bleibt dann mit vollem Cache aktiv. Vorher konnte ein Worker mit
+     leerem Cache uebernehmen und den funktionierenden alten loeschen. */
   e.waitUntil(
     caches.open(VERSION)
-      .then(c => Promise.all(DATEIEN.map(d => c.add(d).catch(() => {}))))
+      .then(c => c.addAll(DATEIEN))
       .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', e => {
+  /* Nur eigene Caches aufraeumen. Cache Storage gilt fuer die ganze Domain,
+     nicht nur fuer diesen Unterordner. Ohne die Praefix-Pruefung wuerde der
+     Worker die Caches anderer Lernseiten derselben Adresse mitloeschen. */
   e.waitUntil(
     caches.keys()
-      .then(namen => Promise.all(namen.filter(n => n !== VERSION).map(n => caches.delete(n))))
+      .then(namen => Promise.all(
+        namen.filter(n => n.startsWith(PRAEFIX) && n !== VERSION)
+             .map(n => caches.delete(n))
+      ))
       .then(() => self.clients.claim())
   );
 });
@@ -37,9 +46,11 @@ self.addEventListener('fetch', e => {
       if (treffer) return treffer;
       return fetch(anfrage)
         .then(antwort => {
-          if (antwort && antwort.ok && antwort.type === 'basic') {
+          /* status===200 statt antwort.ok: ok schliesst 206 Teilantworten ein,
+             die cache.put() ablehnt. Das warf eine unbehandelte Ablehnung. */
+          if (antwort && antwort.status === 200 && antwort.type === 'basic') {
             const kopie = antwort.clone();
-            caches.open(VERSION).then(c => c.put(anfrage, kopie));
+            caches.open(VERSION).then(c => c.put(anfrage, kopie)).catch(() => {});
           }
           return antwort;
         })
