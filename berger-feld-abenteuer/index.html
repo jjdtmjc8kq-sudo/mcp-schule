@@ -4099,6 +4099,34 @@ window.__PA={player,dlg,battle,
   gotoRoom(i){startFade(i)},
   step:(n=1,dt=1/60)=>{for(let i=0;i<n;i++)frame(dt)}};
 </script>
+<!-- Bildschirm wachhalten. Am Messestand sperrt sich das iPad sonst mitten
+     im Betrieb, und die Geraeteverwaltung der Stadt laesst als laengste
+     Wartezeit nur zwei Minuten zu. Der Wake Lock arbeitet unterhalb dieser
+     Einstellung und haelt den Bildschirm an, solange die Seite sichtbar ist.
+     Er geht verloren, sobald der Tab in den Hintergrund wandert, deshalb wird
+     er bei jeder Rueckkehr und bei jeder Beruehrung neu angefordert.
+     Manche Browser geben ihn nur nach einer Nutzergeste heraus, der erste
+     Tipp auf den Startknopf deckt das ab.
+     Faellt alles aus, spielt das Spiel unveraendert weiter. -->
+<script>
+(function(){
+  var lock=null;
+  function holen(){
+    if(lock)return;
+    try{
+      if(!('wakeLock' in navigator)||document.visibilityState!=='visible')return;
+      navigator.wakeLock.request('screen').then(function(l){
+        lock=l;
+        l.addEventListener('release',function(){lock=null;});
+      }).catch(function(){});
+    }catch(e){}
+  }
+  document.addEventListener('visibilitychange',holen);
+  document.addEventListener('pointerdown',holen);
+  window.addEventListener('focus',holen);
+  holen();
+})();
+</script>
 <!-- Offline-Betrieb am Messestand. Der Service Worker legt die Seite beim
      ersten Besuch mit Netz ab, danach startet sie auch ohne WLAN.
      Bewusst defensiv: laeuft erst nach dem Laden, und jeder Fehler wird
