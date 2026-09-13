@@ -4099,5 +4099,20 @@ window.__PA={player,dlg,battle,
   gotoRoom(i){startFade(i)},
   step:(n=1,dt=1/60)=>{for(let i=0;i<n;i++)frame(dt)}};
 </script>
+<!-- Offline-Betrieb am Messestand. Der Service Worker legt die Seite beim
+     ersten Besuch mit Netz ab, danach startet sie auch ohne WLAN.
+     Bewusst defensiv: laeuft erst nach dem Laden, und jeder Fehler wird
+     verschluckt. Faellt die Registrierung aus, spielt das Spiel genau wie
+     vorher weiter. Ueber file:// wirft register() eine Ausnahme, deshalb
+     zusaetzlich try/catch um den ganzen Block. -->
+<script>
+try{
+  if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+    window.addEventListener('load',function(){
+      navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(function(){});
+    });
+  }
+}catch(e){}
+</script>
 </body>
 </html>
